@@ -9,7 +9,7 @@ _A Lambda Calculus-like Programming Language, but Worse_
 
 Although lambda calculus has a remarkably simple structure (terms are constructed using only 3 rules and solved using just 2 reduction operations) the kind of computations it is able to model is surprisingly large. In fact, the computing power of lambda calculus was proven to be equivalent to that of a rather famous model designed by one of Church's students, one Alan Turing. Turing machines, the basis for modern computers (and basically all programming languages except for a handful renegades) and lambda calculus were proven to be equivalent in the [Church-Turing thesis](https://en.wikipedia.org/wiki/Church%E2%80%93Turing_thesis), which we might as well call the very foundation of computer science.
 
-Lambda calculus has sits at the core of many useful applications such as [functional programming](https://en.wikipedia.org/wiki/Functional_programming), as well as number of niche or less useful application, such as functional programming [_using Haskell_](https://xkcd.com/1312/). Many derivative formalisms build upon lambda calculus by adding features (as in _typed_ lambda calculus) or which manage to achieve Turing-completeness with an even simpler structure (as in the [SKI combinator calculus](https://en.wikipedia.org/wiki/SKI_combinator_calculus) or [Iota and Jot systems](https://en.wikipedia.org/wiki/Iota_and_Jot)).
+Lambda calculus has sits at the core of many useful applications such as [functional programming](https://en.wikipedia.org/wiki/Functional_programming), as well as a number of niche or less useful application, such as functional programming [_using Haskell_](https://xkcd.com/1312/). Many derivative formalisms build upon lambda calculus by adding features (as in _typed_ lambda calculus) or which manage to achieve Turing-completeness with an even simpler structure (as in the [SKI combinator calculus](https://en.wikipedia.org/wiki/SKI_combinator_calculus) or [Iota and Jot systems](https://en.wikipedia.org/wiki/Iota_and_Jot)).
 
 To the best of my knowledge, _Lambad_ does not contribute any helpful features to standard lambda calculus and, if forever reason it does, it's not by design. That said, a Lambad term will often be shorter than the corresponding lambda expression (for example, the identity function `λx.x` might be written as just `:` in Lambad) and the way expressions are constructed by keeping a list of sub-expressions could possibly be make some derivations easier.
 
@@ -43,3 +43,72 @@ Programmers who haven't had to deal with functional programming (_yet_) might ha
 The occurrences of an abstraction's variable within its body (such as `x` and `f` in `λf.λx.(f (f x))`) are said to be _bound_. By contrast, variables which are not bound within an abstraction (such as `f` in the intermediate step `λx.(f (f x))`) are said to be _free variables_. When handling computations, we're only interested in lambda expressions without any free variables ('fully qualified', which is why _Lambad_ is only able to build terms without free variables.
 
 Given an arbitrary lambda expression which _might_ contain free variables, it's pretty simple to transform it into a Lambad-compatible fully qualified expression: just add abstractions for any free variable in the same way we transformed `f (f x)` into `λf.λx.(f (f x))`. This can be fairly useful: if know we're only using a certain set of variables and all of our expressions are meant to be fully-qualified, we could write the unqualified form with free variables _as a shortcut_: then _`f (f x)`_ wouldn't stand for the actual expression `f (f x)` but just by an abbreviation for `λf.λx.(f (f x))`. This sort of abbreviations are justifiedly not allowed in standard lambda calculus (where non-fully-qualified expressions such as `f (f x)` are valid) but they will be a major component of _Lambad_, where the requirement that all expressions be fully qualified prevents any ambiguity.
+
+## Lambad flavors
+
+There are two variants of Lambad, both are bad. Since they could be said to be two _flavors_ of the language, I considered naming them 'Bitter Lambad' and 'Salty Lambad', but I thought that was distasteful so I'll go with the more straightforward names 'Verbose Lambad' and 'Shortened Lambad', even if those names are rather _bland_.
+
+Verbose Lambad fully reveals the underlying structure of the language and it might make the translation between Lambad and lambda expressions a bit less painful. On the other hand, as the name implies, this will usually result in a longer, more cumbersome code being required to construct a given expression.
+
+By contrast, Shortened Lambad introduces some syntactic [sugar](## "bad syntactic sugar is sometimes called 'syntactic salt'; maybe I should have gone with the 'Bitter' and 'Salty' names after all") which allows for much shorter expressions although at the cost of a more opaque representations. This could make Shortened Lambad better to work with than Verbose Lambad, something that goes clearly against the objective of making an esoteric language. I'd conclude that Verbose Lambad is better because it is worse but this sentence has already confused me too much to make any conclussions.
+
+As we're already nearly 20 paragraphs in without seeing any actual Lambad code, it shouldn't come as a surprise that I'll keep things verbose and go on to explaining Verbose Lambad. There is a good reason for this decision (something I couldn't say about other decisions such as creating this language): Verbose Lambad makes it clearer to see what is going on at each step. Once the verbose variant is introduced, learning the shortcuts provided in the Shortened Lambad will be easy.
+
+## Program structure and syntax
+
+A Lambad program is composed of a series of statements which build on a structure we'll call a _context_ and a return statement that _usually_ will select an output value from the _context_.
+
+### BNF
+
+If you know how to read a [Backus-Naur form (BNF)](https://en.wikipedia.org/wiki/Backus%E2%80%93Naur_form), this specification should give you a good idea of how the Verbose variant of the language works. If you don't, don't worry, the following description should be enough.
+
+```bnf
+<program>      ::= <vars> <ops> ":" <return_value>
+<vars>         ::= "" | "+" <vars>
+<ops>          ::= "" | <apply> <ops> | <compose> <ops>
+<apply>        ::= <id> "." <id> ";"
+<id>           ::= <natural> | "-" <natural>
+<natural>      ::= <digit> | <natural> <digit>
+<digit>        ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" 
+<compose>      ::= "[" <program> "×" <program> "]"
+<return_value> ::= <id> | <compose>
+```
+
+Shortened Lambda allows for some variations not covered in this BNF.
+
+### Comments and whitespace
+
+Whitespace, line breaks, alphabetic letters and all non-numeric characters not included in the BNF are **ignored**, so a program corresponding to the Lambda expression `λx.λy.λz.λs.((x ((y z) s)) s)` could be given as `+++1.2;4.3;0.5;6.2;:7` in its simplest form, be padded with spaces for better legibility as `+ + + 1.2; 4.3; 0.5; 6.2; : 7` or be painstakingly annotated with commentaries as in the following block:
+
+```
++ Introduce variable y in position one
++ Introduce variable z in position two
++ Introduce variable s in position three
+1.2; Application y z in position four
+4.3; Application (y z) s in position five
+0.5; Application x ((y z) s) in position six
+6.2; Application (x ((y z) s)) s in position seven
+: 7 Return postion seven ~ λx.λy.λz.λs.(x ((y z) s))
+```
+
+That last example could be noted as being worryingly clear; fortunately Lambad's lack of practicality and cursedness is derived from the inherent cursedness of more complicated lambda calculus expressions and thus improved legibility is not too much of a concern for its status as an esolang.
+
+### Program context and expression identifiers
+
+The **context** of a Lambad conlang consists of two elements: an ordered, indexed list of variables which will be bound in any returned expressions and a list of expressions. Expressions listed in the content will appear to have free variables but will be qualified by the variables in the context.
+
+Elements are never removed from the context, once added they'll remain available in that position; which makes it possible to reutilize one expression multiple times when building further expressions. At any one point, all 'intermediate steps' will be available.
+
+All programs begin with a one variable and one expression defined in their context. _Lambad_ doesn't use names for variables, instead they are uniquely described by their positions within the list; for _convenience_ we'll say that this variable introduced by default is `x`. An expression using this variable (`x`, `λx.x` when qualified) is automatically added to the expression list in the 0-th position. This allows the programmer use the expression `x` when building new expressions by referencing its position: `0`. In a similar way, as new expressions are added to the context, each expression will be referenced by a positive integer indicating its position in the list.
+
+Negative integers might also be used to reference expressions _outside_ the context. This will lead to an error when used within the 'main body' of a program, but will be useful for subprograms, as will be discussed later.
+
+### Variable introduction
+
+The **`+`** operator is used to introduce another variable to the context. Each time this operator is used, a new variable is added to the context's variable list and an expression consisting on that variable is appended to the expression list. For instance, after using a single `+` the context will keep track of two variables (which we may deem `x` and `y`) and its expression list will contain two expressions, namely `x` in position `0` and `y` in position `1`.
+
+Expressions are qualified using all the variables tracked by the context. As a result, introducing a new variable affects all expressions within the context, including terms that do not use the new variable. For instance, while the expression in position 0 `x` was originally qualified as `λx.x`, after the `y` variable is introduced with `+` it goes on to be qualified as `λx.λy.x`. This is significant as `λx.x` and `λx.λy.x` represent different functions: the former (`λx.x`) is the identity function, returning the same argument it receives, the latter is a function that successively takes two arguments (`x` and `y`) and returns the first one it received (`x`) regardless of whatever value `y` might have.
+
+Variable introduction is only allowed at the start of a program.
+
+
