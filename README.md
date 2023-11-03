@@ -1,6 +1,8 @@
 # Lambad
 _A Lambda Calculus-like Programming Language, but Worse_
 
+![It might seem complicated, but it actually is](https://github.com/jotadiego/Lambad/blob/main/img/spook.png)
+
 ## Contents
 - [Concept (and a brief introduction to lambda calculus)](#concept-and-a-brief-introduction-to-lambda-calculus)
 - [Even more lambda calculus concepts](#even-more-lambda-calculus-concepts)
@@ -274,7 +276,7 @@ The initialization of the context of a program is indicated with a `T`-like mark
 
 For instance, the contexts corresponding to an empty program (with one variable), `+` (two variables) and `++`  (three variables) will be represented as follows:
 
-![Context headers](https://avatars.githubusercontent.com/u/21159320?v=4)
+![Context headers](https://github.com/jotadiego/Lambad/blob/main/img/context_headers.png)
 
 The _n_-th line from left to right corresonds to the expression in position _n-1_ (the leftmost line corresponds to the variable `x`, defined to be in position 0).
 
@@ -282,7 +284,7 @@ The **return value** is specified by adding a small square (a 'return box') at t
 
 For example, the following graphs correspond to the expressions `: 0` (`λx.x`, only one variable, which is returned), `+ : 1` (`λx.λy.y`, two variables, the variable in position 1 is returned) and `+ + : 1` (three variables, the variable in position 1 is returned).
 
-![Simple examples](https://avatars.githubusercontent.com/u/21159320?v=4)
+![Simple examples](https://github.com/jotadiego/Lambad/blob/main/img/simple_examples.png)
 
 ### Applications
 
@@ -290,13 +292,15 @@ The application of an expression to another is marked by connecting the two line
 
 Hopefully, a sample image will make explain this better than words. The graph on the left corresponds to the expression `+ 0.1; : 2` or `λx.λy.(x y)`: the left-side expression in the diagram (corresponding to the  `x` in position 0) is applied to the right-side expression (the `y` in position 1), a new line corresponding to the composition `x y` is added a position 2, branching from the bottom side of the joiner to indicate the left-to-right direction. Conversely, the graph in the middle corresponds to the expression `+ 1.0; :2` or `λx.λy.(y x)` where the expression in the highest position (`y`, position 1, on the right) is applied to an expression in a lower position (`x`, position 0, on the left); the line corresponding to the application `y x` branches from the top side of the joiner to indicate this right-to-left direction. The third graph, on the right, represents `0.0; : 1` or `λx.(x x)`, a term where an expression (`x`) is applied to itself; with the line for `x x` stemming off a loop on the line for `x`.
 
-![Applications](https://avatars.githubusercontent.com/u/21159320?v=4)
+![Applications](https://github.com/jotadiego/Lambad/blob/main/img/applications.png)
 
 ### Compositions
 
 A composition is graphed by representing the graph of each subprogram and then joining their _return_ boxes to a new vertical line representing the resulting expression.
 
 The following examples represent the composition `:[:0 × :0]` or `(λx.(x x)) (λy.(y y))` (composition of the identity function to itself, returned as the result of the program), `[:0 × :0] : 1` or `λx.((λy.(y y)) (λz.(z z)))` (the same composition but qualified by a variable in its parent context) and `λx.(x ((λy.(y y)) (λz.(z z))))` (the outer variable `x` applied to the result of the composition).
+
+![Compositions](https://github.com/jotadiego/Lambad/blob/main/img/Compositions.png)
 
 ## Examples
 
@@ -310,6 +314,8 @@ A few simple functions:
 | Apply argument to itself | `λx.x x` | `0.0; : 1` | **`.:`** |
 | Apply f to x | `λf.λx.f x` | `+ 0.1; : 2` | **`.1:`** |
 
+![Examples](https://github.com/jotadiego/Lambad/blob/main/img/examples1.png)
+
 ### Recursive functions
 
 Two recursive functions (the non-halting expression reduces to itself, it is the equivalent to an infinite loop in a Turing Machine; the Y combinator may be used to implement halting recursion with some cleverness).
@@ -318,6 +324,8 @@ Two recursive functions (the non-halting expression reduces to itself, it is the
 |----------|-------------------|----------------|------------------|
 | A non-halting expression | `(λx.x x) (λx.x x)` | `: [0.0; : 1 × 0.0; :1 ]` | **`:[.: × .:]`** |
 | Y combinator | `λx.((λy. (x (y y))) (λz.x ((z z))))` | `[0.0; -1.1; :2 × 0.0; -1.1; :2] :1` | **`[.;-1.: × .;-1.:]:`** |
+
+![Examples](https://github.com/jotadiego/Lambad/blob/main/img/recursive.png)
 
 ### Turing-complete Combinators
 
@@ -329,6 +337,8 @@ Some combinators which are known to form Turing-complete systems ([SKI](https://
 | K combinator | `λx.λy.x` | `+ : 0` | **`+:0`** |
 | I combinator | `λx.x` | `: 0` | **`:`** |
 | Iota combinator | `λf.((f (λa.λb.λc.((ac)(bc)))) (λd.λe.d))` | `[ : 0 × + + 0.2; 1.2; 3.4; : 5] 0.1; [ :0 × + : 0] 2.3; : 4` | **`[0.2;1.2;3.:]0.;[+:0]2.:`** |
+
+![Examples](https://github.com/jotadiego/Lambad/blob/main/img/combinators.png)
 
 The fact that these combinators can be implemented in Lambad is indicative that Lambad is Turing complete (something which was not a given considering that some lambda expressions lack a direct counterpart in Lambad).
 
@@ -358,6 +368,8 @@ Operations on Booleans can be defined taking advantage of this 'choose one or th
 | P **and** Q | If P is _true_, take Q, else take P | `λp.λq.((p p) q)` | `+ 0.0; 2.1; : 3` | **`+0.0;.1:`** |
 | P **or** Q | If P is _true_, take P, else take Q | `λp.λq.((p q) p)` | `+ 0.1; 2.0; : 3` | **`.1;.0:`** |
 | **not** P | If P is _true_, build a _false_ value, else build a _true_ | `λp.λf.λt.((p t) f)` | `+ + 0.2; 3.1; : 4` | **`0.2;.1:`** |
+
+![Examples](https://github.com/jotadiego/Lambad/blob/main/img/Booleans.png)
 
 In order to use these operators, we need to apply the expression for the operator to the expression for their arguments (in case of operators with multiple arguments, multiple successive applications will be needed). For instance, we can compute `true AND false` as `:[[+0.0;.1:×:1]×+:0]`:
 
