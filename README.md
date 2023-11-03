@@ -619,4 +619,8 @@ And the equivalent Verbose Lambad:
 111.263; 114.264; 108.265; 100.266; 33.267; : 268
 ```
 
+Unsurprisingly, the corresponding _LambadA_ graph isn't much nicer:
+
+![Examples](https://github.com/jotadiego/Lambad/blob/main/img/lambad_helloworld.png)
+
 Back to Church encodings, the church emoji ⛪ is represented in Unicode as a sequence of three bytes `0xE2 0x9B 0xAA` or, in decimal, `226, 155, 170`. Accordingly, the Lambad church encoding can be given as `226.256;155.;170:`.
