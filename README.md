@@ -289,13 +289,68 @@ Operations on Booleans can be defined taking advantage of this 'choose one or th
 | P **or** Q | If P is _true_, take P, else take Q | `λp.λq.((p q) p)` | `+ 0.1; 2.0; : 3` | **`.1;.0:`** |
 | **not** P | If P is _true_, build a _false_ value, else build a _true_ | `λp.λf.λt.((p t) f)` | `+ + 0.2; 3.1; : 4` | **`0.2;.1:`** |
 
+In order to use these operators, we need to apply the expression for the operator to the expression for their arguments (in case of operators with multiple arguments, multiple successive applications will be needed). For instance, we can compute `true AND false` as `:[[+0.0;.1:×:1]×+:0]`:
+
+```
+:
+[
+    [
+        +0.0;.1:    And
+      ×
+        :1          True
+    ]
+  ×
+    +:0             False
+]
+```
+
+This code corresponds to the lambda expression `((λp.λq.((p p) q)) (λf.λt.t)) (λf.λt.f)` which reduces to `λf.λt.f`, our representation for the _false_ value. Thus, we can assert that `true AND false` is equivalent to `false`, as we would expect.
+
+More complex propositions such as `(P or Q) and not (P and Q)` can be made by combining the aforementioned operators:
+
+```
++ We'll make two variables available for P and Q
+[ (P or Q) and not (P and Q)
+    [ (P or Q) and ____
+        +0.0;.1:    And
+      ×
+        [  P or Q
+            [ P or ____
+                .1;.0:   Or
+              ×
+                :-1      P
+            ]
+          ×
+            :-2     Q
+        ]
+    ]
+    ×
+    [ Not (P and Q)
+        0.2;.1:     Not
+        ×
+        [ P and Q
+            [ P and ___
+                +0.0;.1:    And
+              ×
+                :-1      P
+            ]
+          ×
+            :-2     Q
+        ]
+    ]
+]
+:    Return λP λQ ((P or Q) and not (P and Q))
+```
+
+Or, for short: `+[[+0.0;.1:×[[.1;.0:×:-1]×:-2]]×[0.2;.1:×[[+0.0;.1:×:-1]×:-2]]]:`.
+
 #### Natural numbers
 
 While the idea of an artificial language meant for international communication (what is known in the business as an 'auxilliary language' or _auxlang_ for short) is most commonly associated to Esperanto, a constructed language as practical for its intended purpose as _Lambad_ itself, the fact is that Esperanto is only one of several such proposals. The fact that you're reading this article in English and not Ido, Volapük or Communicationssprache can give you an adequate notion of how succesful such proposals were. Still, one curious proposal was that of _Latino sine flexione_, a much simplified form of Latin without noun cases and with relatively minimal verb conjugation. While a cool idea in theory, the language didn't gather much support and its creator, Italian mathematician Giusseppe Peano, is mostly known instead for developing the modern mathematical understanding of natural numbers among other notorious contribuitions to the field.
 
 Peano's axiomatization gave us an inductive definition for natural numbers where any value can be constructed out of two elements: a value corresponding to the first natural _zero_ and a _successor_ function which we can apply repeatedly on the _zero_ value to construct any positive integer.
 
-A Church encoding for naturals will use two variables corresponding to those elements, the _zero_ value and the _successor_ function. As it was the case when encoding booleans, it is necessary to pick a convention on what element will come first; both options will allows us to build equally powerful representations of natural numbers but they will impact on the way individual values are built as well as in the way any operations on natural numbers are defined.
+A Church encoding for naturals will use two variables corresponding to those elements, the _zero_ value and the _successor_ function. As it was the case when encoding booleans, it is necessary to pick a convention on what element will come first; both options will allows us to build equally powerful representations of natural numbers but they will impact on the way individual values are built as well as in the way any operations on natural numbers are defined. Being a little naïve, we'll easily believe that both options are just as good.
 
 Picking the successor function as the first variable seems to be the most used convention, although that gives `λs.λz.z` as a representation for zero, which translates to Lambad as `:1`. The opposite order (using the variable we'll associate to the zero value first) gives us `λz.s.z` as a representation for zero, which becomes `+:0`, the same representation we used to encode the 'false'. The latter convention feels much more convenient when using this notation, even if it goes at odds with general usage in lambda calculus. Turns out that _Lambad_ goes does the opposite of good lambda, who could tell.
 
@@ -308,3 +363,144 @@ Picking the successor function as the first variable seems to be the most used c
 | **4**  | S(S(S(S(0)))) | `λz.λs.s (s (s (s z)))` | `+ 1.0; 1.2; 1.3; 1.4; : 5` | **`1.0;1.;1.;1.:`** |
 | **5**  | S(S(S(S(S(0))))) | `λz.λs.s (s (s (s (s z)))` | `+ 1.0; 1.2; 1.3; 1.4; 1.5; : 6` | **`1.0;1.;1.;1.;1.:`** |
 
+As with booleans, we can define functions that operate on these representations.
+
+| Operation | Lambda expression | Verbose Lambad | Shortened Lambad |
+|-----------|-------------------|----------------|------------------|
+| _**n + 1**_ | `λn.λz.λs.(s ((n z) s))` | `+ + 0.1; 3.2; 2.4; :5` | **`2+0.1;.2;2.:`** |
+| _**m + n**_ | `λm.λn.λz.λs.((m ((n z) s)) s)` | `+ + + 1.2; 4.3; 0.5; 6.3; :7` | **`3+1.2;.3;0.;.3:`** |
+
+Once we get to multiplication, we're forced to pay the price of our naïvity. It turns out there _was_ a good reason why 'successor first, then zero' is the most used convention: that allows us to work with partial results where only the successor is defined. Using the 'successor first, then zero' schema, multiplication can be written as `λm.λn.λs.(m (n s))` (`1.2;0.:` in Lambad). If there is a similarly convenient form of writing multiplication for the 'zero first, then successor' schema, I wasn't able to find it. Fortunately, there is a way to switch the order of the arguments for a function, we just have to use `λf.λa.λb.((f b) a)` (an operator that takes a function _f_, two arguments _a_ and _b_ and computes _f(b,a)_). The simplest solution I got for multiplication while keeping the 'zero first, then successor' order that yields nicer representations in Lambad was to use this trick in an expression equivalent to `λm.λn.λs.((λms.λmz.((m mz) ms)) ((λns.λnz.((n nz) ns)) s))`, which can be represented in Lambad as `2+[-1.1;.0:][-2.1;.0:].2;3.:`, constructed as follows:
+
+```
+2+  Three variables for m, n and s
+[ An expression equivalent to (λms λmz ((m mz) ms)) is appended to the expression list in position three
+    -1.1; m mz
+    .0:   (m mz) ms
+]
+[ An expression equivalent to (λns λnz ((n nz) ns)) is appended to the expression list in position four
+    -2.1; n nz
+    .0:   (n nz) ns
+]
+.2; Equivalent to (λns λnz ((n nz) ns)) s
+3.; Equivalent to (λms.λmz.((m mz) ms)) ((λns.λnz.((n nz) ns)) s)
+:
+```
+
+When building a programming language to be used for practical purposes, having a much simpler multiplication (`1.2;0.:`) is well worth the cost of having a less elegant representation for numbers, so it would be logical to stick to the well-justified convention of using the 'successor first' order, even if it means that we'd have counterintuitive expressions such as `:1` for 'zero'. However, by this point there should be no doubts that logic and practicality are _not_ priorities in the design of Lambad. We'll stick to the 'zero first' order, with its cumbersome multiplication and slightly nicer numbers because I _like_ it that way.
+
+### Text and bytestreams
+
+Up to this point we've seen that Lambad is Turing-complete and able to manipulate values equivalent to booleans and integers. There is still one major problem, though: I've been calling Lambad a _programming language_ yet I haven't formally proved that it satisfies all the requirements needed for a programming language:
+
+1. Turing-completeness.
+2. Painful bugfixing.
+3. You can write a 'Hello World' program in it.
+
+The fact that we could implement the SKI combinators in Lambad is already a proof that the first requirement is fulfilled. You will have to take my word about the second one, but I'm quite confident that you'll have no problem believing it. This leaves the 'Hello World' issue.
+
+Alonzo Church did not define a lambda calculus encoding for text, so there is no widely used encoding we could use to shoot ourselves in the foot by using a variant with the opposite conventions as everyone else.
+
+There are various ways we could represent text, most of which involve writing a sequence of characters. Let's examine some alternatives which range from bad to very bad.
+
+#### Morse encoding
+
+Yep, we're starting with the 'very bad'.
+
+Telegraph communication was the first form of text transmission by electronic means. Building a communication system using some lengthy wires and 19th century technology had its limitations, it's not immediately clear whether those were more severe than our self-imposed restriction of writing stuff in Lambad.
+
+Morse code was by far the main method to encode text in telegraphs. There is a common misconception that Morse code uses only two symbols: the dot (or 'dit') and the dash (or 'dah'). While it is true that any letter or numeral can be represented as a sequence of _dits_ and _dahs_, this fails to take into account the fact that _pauses_ ('spaces') are needed to separate characters; otherwise we would be unable to distinguish between the letter 'W' `.--` and the sequence 'AT' `.- -`.
+
+It could be argued that we should actually need a fourth symbol for the longer pause used to separate _words_, so as to distinguish between 'AT' `.- -` and 'A T' `.-  -` though we could approximate that by using two _space_ symbols. It could also be argued that two symbols are actually enough, we'd just need to consider the 'pixels' (or 'units') that compose each _dit_, _dah_ or _space_. Working with _dits_, _dahs_ and _spaces_, however, has the undeniable advantage that saying 'dit' and 'dah' is way more fun than using a more efficient representation.
+
+In addition to our three symbols, we'll need a way to represent an empty string. Our encoding will use four variables: one representing the empty string and one representing a function that adds each symbol to the string (not unlike the way our _successor_ function added an unit to the zero value in our encoding for natural numbers). With this, we'll have:
+- `λe.λdit.λdah.λs.e` or `3+:0` for the empty string.
+- `λe.λdit.λdah.λs.dit e` or `3+1.0:` for the string `.` (the empty string followed by a dot, equivalent to the letter 'e').
+- `λe.λdit.λdah.λs.dah e` or `3+2.0:` for the string `.` (the empty string followed by a dash, equivalent to the letter 't').
+- `λe.λdit.λdah.λs.s e` or `3.0:` for the string ` ` (the empty string followed by a space).
+- `λe.λdit.λdah.λs.dit (dit e)` or `3+1.0;1.:` for the string `..` (two dots, equivalent to the letter 'i').
+- `λe.λdit.λdah.λs.dah (dit e)` or `3+1.0;2.:` for the string `.-` (two dots, equivalent to the letter 'a'). The lambda expression seems to show the 'dit' and the 'dah' in the wrong order as the function to append a new character to the end of the string must be placed on the left. By contrast, the `1` and `2` representing 'dits' and 'dahs' in Lambad _do_ appear in the right order, making Lambad notation considerably more convenient this time around.
+- `λe.λdit.λdah.λs.(dit (dit (dah (s (dit (dit (dah (dit (s (dit (dah( (dit (s (dah (dah (dah (s (dah (dah (dit (s (s (dah (dah (dah (s (dit (dit (dah (dit (s (dit (s (dit (dit (dit (dit e)))))))))))))))))))))))))))))))))))))` or `3+1.0;1.;1.;1.;3.0;1.;3.;1.;2.;1.;1.;3.;2.;2.;2.;3.;3.;1.;2.;2.;3.;2.;2.;2.;3.;1.;2.;1.;3.;1.;2.;1.;1.;3.;2.;1.;1.:` for `.... . .-.. ---  .-- --- .-. .-.. -..`, equivalent to 'hello world'.
+- `λe.λdit.λdah.λs.(dit (dit (dit (dah (dah (dah (dit (dit (dit e)))))))))` or `3+1.0;1.;1.;2.;2.;2.;1.;1.;1.:` for `...---...`, a code that will come in handy if you ever need to represent text in morse code using lambda calculus.
+
+There are various downsides to using this encoding, the most obvious being the fact that the resulting expressions end up being excessively long. Other issue include the lack of distinction between lowercase and uppercase characters as well as the wider lack of Unicode support which, in our present day and age, is hard to justify (on good Samuel Morse's behalf, his code predates Unicode by over a century, so he can get away with it).
+
+#### Numerical encoding
+
+If we want full Unicode support, looking at the way Unicode text is encoded in actual computers is probably a good start. Unicode-compatible text is usually encoded using the UTF-8 standard, where each character is represented by a sequence of up to 4 bytes. While the algorithm for encoding a given character is well worth [taking a look](https://en.wikipedia.org/wiki/UTF-8#Encoding_process), just being able to encode an arbitrary sequence of bytes will be enough for our purposes and, in fact, will also provide a useful way to handle other kinds of binary-encoded data.
+
+Of course, a byte isn't but a sequence 8 of binary digits (bits) which could be interpreted as a 8-digit binary number (a value ranging from 0 to 2⁸-1 = 255). Analogously, a sequence of _n_ bytes can be interpreted as a binary number with _8n_ digits, equivalent to a value ranging from 0 to 2⁸ⁿ-1.
+
+Fortunately, we've already got a way to encode natural numbers! Unfortunately, Church encoding represents numbers in _unary_, requiring as many applications of the successor function as the value we want to represent, which grows by a factor of 256 for each new byte.
+
+Latin alphabet letters and spaces use only 1 byte each in UTF-8, so "Hello world!" will be take 12 bytes. We could estimate the numerical interpretation of that string to be around 2⁹⁵, a number in the _octillions_ (that's a billion billion billions, well above the number of atoms in a human body). The amount of memory needed to represent either the lambda expression or the Lambad term for such a number far exceeds the total amount of data storage ever created.
+
+Let's not do that.
+
+#### Bit by bit
+
+What if we did something similar to how we handled Morse code, except that we encoded each individual bit as a string of ones and zeroes instead of dits and dahs?
+
+This time around it will be more convenient to encode the zero string using the _last_ variable in our expression, so that the Lambad variables in positions 0 and 1 can be used to represent zeroes and ones respectively.
+
+Thus we'd have:
+- `λzero.λone.λe.e` or `:2` for the empty string.
+- `λzero.λone.λe.(zero e)` or `0.3:` for the bit sequence `0`.
+- `λzero.λone.λe.(one e)` or `1.3:` for the bit sequence `1`.
+- `λzero.λone.λe.(one (zero e)` or `0.3;1.:` for the bit sequence `01`.
+- `λzero.λone.λe.(zero (zero (zero (one (zero (zero (one (zero e))))))))` or `0.3;1.;0.;0.;1.;0.;0.;0:` for the bit sequence `01001000`, which is the UTF-8 (and ASCII) representation of the capital letter 'H'.
+
+It's clear that this method still takes to long, although it's able to represent any byte using only 8 applications, as opposed to the up to 255 required in pure numerical encoding. Furthermore, the number of applications will always be just 8 times the number of bytes, which means "Hello world!" will only take 96 applications as opposed to literal _octillions_.
+
+Still, there is one much more convenient way to work with bytes in Lambad:
+
+#### Byte by byte
+
+So, what if instead of encoding bits one by one we encoded one byte at a time? That will require distinguishing between 256 values, so the representation of a single Latin script letter such as 'H' will take 256 variable introductions (which Shortened Lambad allows us to write as just `256+` or even omit complete) followed by one application. This seems considerably more complex than the 2 variable introductions and 8 applications needed on our 'bit by bit' schema but there's one crucial difference between the two methods: variable introductions are only needed once for the entire text, whereas the amount of applications depends on the number of characters.
+
+For a text encoded as a sequence of _n_ bytes, the 'byte by byte' scheme will take _256 + n_ Lambad operations (256 variable introductions, _n_ applications), whereas the 'bit by bit' scheme will take _2 + 8n_ operations (2 variable introductions, _8n_ applications). Any text whose UTF-8 representation is at least 37 bytes long will take less Lambad operations when working by bytes. Shortened Lambad will allow us to hide away those 256 variable introductions, so even texts comprised of a single letter will _appear_ to have a simpler structure in the byte by byte scheme.
+
+For instance, the uppercase letter 'H', corresponding to the byte 0x48 (`01001000` in binary, **72** in decimal) will be represented in Lambad as `72.256:`. This expression seems to be comprised of a single application between the expressions in positions 72 (corresponding to the desired byte) and position 256 (the empty string variable); the fact that position 256 is referenced is enough to hint that 256 new variables need to be introduced. The corresponding lambda expression, where all variables must be noted explicitly, results in the following abomination:
+
+```
+λx0.λx1.λx2.λx3.λx4.λx5.λx6.λx7.λx8.λx9.λx10.λx11.λx12.λx13.λx14.λx15.λx16.λx17.λx18.λx19.λx20.λx21.λx22.λx23.λx24.λx25.λx26.λx27.λx28.λx29.λx30.λx31.λx32.λx33.λx34.λx35.λx36.λx37.λx38.λx39.λx40.λx41.λx42.λx43.λx44.λx45.λx46.λx47.λx48.λx49.λx50.λx51.λx52.λx53.λx54.λx55.λx56.λx57.λx58.λx59.λx60.λx61.λx62.λx63.λx64.λx65.λx66.λx67.λx68.λx69.λx70.λx71.λx72.λx73.λx74.λx75.λx76.λx77.λx78.λx79.λx80.λx81.λx82.λx83.λx84.λx85.λx86.λx87.λx88.λx89.λx90.λx91.λx92.λx93.λx94.λx95.λx96.λx97.λx98.λx99.λx100.λx101.λx102.λx103.λx104.λx105.λx106.λx107.λx108.λx109.λx110.λx111.λx112.λx113.λx114.λx115.λx116.λx117.λx118.λx119.λx120.λx121.λx122.λx123.λx124.λx125.λx126.λx127.λx128.λx129.λx130.λx131.λx132.λx133.λx134.λx135.λx136.λx137.λx138.λx139.λx140.λx141.λx142.λx143.λx144.λx145.λx146.λx147.λx148.λx149.λx150.λx151.λx152.λx153.λx154.λx155.λx156.λx157.λx158.λx159.λx160.λx161.λx162.λx163.λx164.λx165.λx166.λx167.λx168.λx169.λx170.λx171.λx172.λx173.λx174.λx175.λx176.λx177.λx178.λx179.λx180.λx181.λx182.λx183.λx184.λx185.λx186.λx187.λx188.λx189.λx190.λx191.λx192.λx193.λx194.λx195.λx196.λx197.λx198.λx199.λx200.λx201.λx202.λx203.λx204.λx205.λx206.λx207.λx208.λx209.λx210.λx211.λx212.λx213.λx214.λx215.λx216.λx217.λx218.λx219.λx220.λx221.λx222.λx223.λx224.λx225.λx226.λx227.λx228.λx229.λx230.λx231.λx232.λx233.λx234.λx235.λx236.λx237.λx238.λx239.λx240.λx241.λx242.λx243.λx244.λx245.λx246.λx247.λx248.λx249.λx250.λx251.λx252.λx253.λx254.λx255.λxe.(x72 e)
+```
+
+The representation of 'Hello world!' can be constructed by indicating the decimal values for each of the 12 bytes in a fairly concise manner: `72.256;101.;108.;108.;111.;32.;119.;111.;114.;108.;100.;33.:`
+
+```
+72.256; Append byte  72 ("H") to the empty string
+101.;   Append byte 101 ("e") to the last expression
+108.;   Append byte 108 ("l") to the last expression
+108.;   Append byte 108 ("l") to the last expression
+111.;   Append byte 111 ("o") to the last expression
+32.;    Append byte  32 (" ") to the last expression
+119.;   Append byte 119 ("w") to the last expression
+111.;   Append byte 111 ("o") to the last expression
+114.;   Append byte 114 ("r") to the last expression
+108.;   Append byte 108 ("l") to the last expression
+100.;   Append byte 100 ("d") to the last expression
+33.;    Append byte  33 ("!") to the last expression
+:       Return last expression
+```
+
+This is equivalent to the following lambda monstrosity:
+
+```
+λx0.λx1.λx2.λx3.λx4.λx5.λx6.λx7.λx8.λx9.λx10.λx11.λx12.λx13.λx14.λx15.λx16.λx17.λx18.λx19.λx20.λx21.λx22.λx23.λx24.λx25.λx26.λx27.λx28.λx29.λx30.λx31.λx32.
+λx33.λx34.λx35.λx36.λx37.λx38.λx39.λx40.λx41.λx42.λx43.λx44.λx45.λx46.λx47.λx48.λx49.λx50.λx51.λx52.λx53.λx54.λx55.λx56.λx57.λx58.λx59.λx60.λx61.λx62.λx63.λx64.
+λx65.λx66.λx67.λx68.λx69.λx70.λx71.λx72.λx73.λx74.λx75.λx76.λx77.λx78.λx79.λx80.λx81.λx82.λx83.λx84.λx85.λx86.λx87.λx88.λx89.λx90.λx91.λx92.λx93.λx94.λx95.λx96.
+λx97.λx98.λx99.λx100.λx101.λx102.λx103.λx104.λx105.λx106.λx107.λx108.λx109.λx110.λx111.λx112.λx113.λx114.λx115.λx116.λx117.λx118.λx119.λx120.λx121.λx122.λx123.λx124.λx125.λx126.λx127.λx128.
+λx129.λx130.λx131.λx132.λx133.λx134.λx135.λx136.λx137.λx138.λx139.λx140.λx141.λx142.λx143.λx144.λx145.λx146.λx147.λx148.λx149.λx150.λx151.λx152.λx153.λx154.λx155.λx156.λx157.λx158.λx159.λx160
+λx161.λx162.λx163.λx164.λx165.λx166.λx167.λx168.λx169.λx170.λx171.λx172.λx173.λx174.λx175.λx176.λx177.λx178.λx179.λx180.λx181.λx182.λx183.λx184.λx185.λx186.λx187.λx188.λx189.λx190.λx191.λx192
+λx193.λx194.λx195.λx196.λx197.λx198.λx199.λx200.λx201.λx202.λx203.λx204.λx205.λx206.λx207.λx208.λx209.λx210.λx211.λx212.λx213.λx214.λx215.λx216.λx217.λx218.λx219.λx220.λx221.λx222.λx223.λx224.
+λx225.λx226.λx227.λx228.λx229.λx230.λx231.λx232.λx233.λx234.λx235.λx236.λx237.λx238.λx239.λx240.λx241.λx242.λx243.λx244.λx245.λx246.λx247.λx248.λx249.λx250.λx251.λx252.λx253.λx254.λx255.
+λxe.(x33 (x100 (x108 (x114 (x111 (x119 (x32 (x111 (x108 (x108 (x101 (x72 e)))))))))))))
+```
+
+And the equivalent Verbose Lambad:
+```
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+72.256; 101.257; 108.258; 108.259; 111.260; 32.261; 119.262; 111.263; 114.264; 108.265; 100.266; 33.267; : 268
+```
