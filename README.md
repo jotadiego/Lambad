@@ -1,6 +1,34 @@
 # Lambad
 _A Lambda Calculus-like Programming Language, but Worse_
 
+## Contents
+- [Concept (and a brief introduction to lambda calculus)](#concept-and-a-brief-introduction-to-lambda-calculus)
+- [Even more lambda calculus concepts](#even-more-lambda-calculus-concepts)
+- [Lambad flavors](#lambad-flavors)
+- [Program structure and syntax](#program-structure-and-syntax)
+    - [BNF](#bnf)
+    - [Comments and whitespace](#comments-and-whitespace)
+    - [Program context and expression identifiers](#program-context-and-expression-identifiers)
+    - [Variable introduction](#variable-introduction)
+    - [Functional application](#functional-application)
+    - [Simple return values](#simple-return-values)
+    - [Subprogram composition](#subprogram-composition)
+        - [Compositions within a program](#compositions-within-a-program)
+        - [Compositions as a return value](#compositions-as-a-return-value)
+- [Shortened Lambad](#shortened-lambad)
+    - [BNF for Shortened Lambad](#bnf-for-shortened-lambad)
+- [Examples](#examples)
+    - [Recursive functions](#recursive-functions)
+    - [Turing-complete Combinators](#turing-complete-combinators)
+    - [Church Encodings](#church-encodings)
+        - [Booleans](#booleans)
+        - [Natural numbers](#natural-numbers)
+    - [Text and bytestreams](#text-and-bytestreams)
+        - [Morse encoding](#morse-encoding)
+        - [Numerical encoding](#numerical-encoding)
+        - [Bit by bit](#bit-by-bit)
+        - [Byte by byte](#byte-by-byte)
+
 ## Concept (and a brief introduction to lambda calculus)
 
 **_Lambad_** is meant as an [esoteric](https://en.wikipedia.org/wiki/Esoteric_programming_language) (AKA _cursed_) programming language based on lambda calculus.
@@ -12,6 +40,8 @@ Although lambda calculus has a remarkably simple structure (terms are constructe
 Lambda calculus sits at the core of many useful applications such as [functional programming](https://en.wikipedia.org/wiki/Functional_programming), as well as a number of niche or less useful applications, such as functional programming [_using Haskell_](https://xkcd.com/1312/). Many derivative formalisms build upon lambda calculus by adding features (as in _typed_ lambda calculus) or manage to achieve Turing-completeness with an even simpler structure (as in the [SKI combinator calculus](https://en.wikipedia.org/wiki/SKI_combinator_calculus) or [Iota and Jot systems](https://en.wikipedia.org/wiki/Iota_and_Jot)).
 
 To the best of my knowledge, _Lambad_ does not contribute any helpful features to standard lambda calculus and, if for whatever reason it does, it's not by design. That said, a Lambad term will often be shorter than the corresponding lambda expression (for example, the identity function `λx.x` might be written as just `:` in Lambad) and the way expressions are constructed by keeping a list of sub-expressions could possibly be make some derivations easier.
+
+_Lambad_ expressions can also be represented visually using a scheme called **_LambadA_** (short for Lambad Art). In principle, a _LambadA_ graph could be an useful way of conceptualizing how an operation works, but in practice it's just an abstract squiggle hardly any more legible than the Lambad program it represents. Automatic conversion between _Lambad_ programs and _LambadA_ graphs _could_ be handled programatically, although there is no such implementation so far.
 
 It must also be said that while lambda calculus is connected to Church and churches are places of worship, Lambad [consistently strays away from any good-intentioned god](## "a feature it shares with other lambda-calculus derivatives, very much including Haskell").
 
@@ -170,7 +200,7 @@ Thus `λx.((λy.y x) (λz.x z))` may be represented as `[ 0.-1; :1 × -1.0; :1 ]
 : 1             The result of the composition is returned, qualified by the variables in the outer context
 ```
 
-### Composition as a return value
+#### Composition as a return value
 
 In order to represent lambda expressions with an outermost application, _Lambad_ allows for compositions to be used as return values, simply by preceding the composition with a colon **`:`**. Thus, `: [ 0.-1; :1 × -1.0; :1 ]` is a valid Lambad program corrsponding to the lambda term `(λy.y) (λz.z)`, as opposed to the expression `λx.((λy.y) (λz.z))` we got in the previous section.
 
@@ -452,6 +482,23 @@ Thus we'd have:
 
 It's clear that this method still takes to long, although it's able to represent any byte using only 8 applications, as opposed to the up to 255 required in pure numerical encoding. Furthermore, the number of applications will always be just 8 times the number of bytes, which means "Hello world!" will only take 96 applications as opposed to literal _octillions_.
 
+A 'bit by bit' Lambad representation of the string 'Hello World!' may be written as follows:
+
+```
+0.2;1.;0.;0.;1.;0.;0.;0.; Bits for the character "H"
+0.;1.;1.;0.;0.;1.;0.;1.;  Bits for the character "e"
+0.;1.;1.;0.;1.;1.;0.;0.;  Bits for the character "l"
+0.;1.;1.;0.;1.;1.;0.;0.;  Bits for the character "l"
+0.;1.;1.;0.;1.;1.;1.;1.;  Bits for the character "o"
+0.;0.;1.;0.;0.;0.;0.;0.;  Bits for the character " "
+0.;1.;1.;1.;0.;1.;1.;1.;  Bits for the character "w"
+0.;1.;1.;0.;1.;1.;1.;1.;  Bits for the character "o"
+0.;1.;1.;1.;0.;0.;1.;0.;  Bits for the character "r"
+0.;1.;1.;0.;1.;1.;0.;0.;  Bits for the character "l"
+0.;1.;1.;0.;0.;1.;0.;0.;  Bits for the character "d"
+0.;0.;1.;0.;0.;0.;0.;1:   Bits for the character "!"
+```
+
 Still, there is one much more convenient way to work with bytes in Lambad:
 
 #### Byte by byte
@@ -515,3 +562,5 @@ And the equivalent Verbose Lambad:
 72.256; 101.257; 108.258; 108.259; 111.260; 32.261; 119.262;
 111.263; 114.264; 108.265; 100.266; 33.267; : 268
 ```
+
+Back to Church encodings, the church emoji ⛪ is represented in UniCode as a sequence of three bites `0xE2 0x9B 0xAA` or, in decimal, `226, 155, 170`. Thus, the Lambad church encoding can be given as `226.256;155.;170:`.
