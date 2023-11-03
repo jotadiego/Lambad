@@ -200,7 +200,7 @@ Thus `λx.((λy.y x) (λz.x z))` may be represented as `[ 0.-1; :1 × -1.0; :1 ]
 : 1             The result of the composition is returned, qualified by the variables in the outer context
 ```
 
-#### Composition as a return value
+#### Compositions as a return value
 
 In order to represent lambda expressions with an outermost application, _Lambad_ allows for compositions to be used as return values, simply by preceding the composition with a colon **`:`**. Thus, `: [ 0.-1; :1 × -1.0; :1 ]` is a valid Lambad program corrsponding to the lambda term `(λy.y) (λz.z)`, as opposed to the expression `λx.((λy.y) (λz.z))` we got in the previous section.
 
@@ -257,6 +257,46 @@ Shorteneed Lambad does _not_ address the first problem but provides useful short
 <compose>      ::= "[" <program> "×" <program> "]"
 <return_value> ::= <id> | <compose>
 ```
+
+## LambadA - a visual representation for Lambad programs
+
+As hinted by the section title, _**LambadA**_ (short for Lambad Art) is a visual representation of a Lambad program. The name is also fairly appropriate as [it will only make you cry](## "I'm honestly quite curious about the interesection between the set of people who read articles about esoteric functional programming languages and the set of people who can get a reference to a Brazilian song from the 1980's").
+
+In theory, a Lambad program could be converted automatically into a _LambadA_ graph and _vice versa_ (which would be far more impressive), although implementing such a program falls well outside the scope of 'what I feel like doing anytime soon'.
+
+The _LambadA_ representation of a _Lambad_ program closely follows the structure of the latter. Each expression within the context is represented by a vertical line with connections to related expressions (such as applications).
+
+_LambadA_ representations are always based on the underlying Verbose Lambad program; any shorthands introduced by Shortened Lambad are not considered.
+
+### Context representation
+
+The initialization of the context of a program is indicated with a `T`-like mark. The vertical stroke of this mark will then branch into **as many vertical lines** as there are **variables** in the context (including both the default variable and any variables introduced with the `+` operator).
+
+For instance, the contexts corresponding to an empty program (with one variable), `+` (two variables) and `++`  (three variables) will be represented as follows:
+
+![Context headers](https://avatars.githubusercontent.com/u/21159320?v=4)
+
+The _n_-th line from left to right corresonds to the expression in position _n-1_ (the leftmost line corresponds to the variable `x`, defined to be in position 0).
+
+The **return value** is specified by adding a small square (a 'return box') at the end (bottom) of the line representing the returned expression.
+
+For example, the following graphs correspond to the expressions `: 0` (`λx.x`, only one variable, which is returned), `+ : 1` (`λx.λy.y`, two variables, the variable in position 1 is returned) and `+ + : 1` (three variables, the variable in position 1 is returned).
+
+![Simple examples](https://avatars.githubusercontent.com/u/21159320?v=4)
+
+### Applications
+
+The application of an expression to another is marked by connecting the two lines for each involved expressions with a horizontal line (a 'joiner') and adding a new vertical line on the right (corresponding to the application expression which enters the context list in a new position). The new vertical line will be connected to either the top or the bottom of the joiner depending on the 'direction' of the application: if the expression on the left side of the application has a lower position (if the application goes 'from left to right') then the new line will branch from the bottom of the joiner. On the other hand, if the expression on the right side of the application has a higher position (if the application goes 'from right to left'), the line will branch from the bottom of the joiner instead. Applications of one expression to itself branch directly from the 'parent' expression, which is marked with a small loop.
+
+Hopefully, a sample image will make explain this better than words. The graph on the left corresponds to the expression `+ 0.1; : 2` or `λx.λy.(x y)`: the left-side expression in the diagram (corresponding to the  `x` in position 0) is applied to the right-side expression (the `y` in position 1), a new line corresponding to the composition `x y` is added a position 2, branching from the bottom side of the joiner to indicate the left-to-right direction. Conversely, the graph in the middle corresponds to the expression `+ 1.0; :2` or `λx.λy.(y x)` where the expression in the highest position (`y`, position 1, on the right) is applied to an expression in a lower position (`x`, position 0, on the left); the line corresponding to the application `y x` branches from the top side of the joiner to indicate this right-to-left direction. The third graph, on the right, represents `0.0; : 1` or `λx.(x x)`, a term where an expression (`x`) is applied to itself; with the line for `x x` stemming off a loop on the line for `x`.
+
+![Applications](https://avatars.githubusercontent.com/u/21159320?v=4)
+
+### Compositions
+
+A composition is graphed by representing the graph of each subprogram and then joining their _return_ boxes to a new vertical line representing the resulting expression.
+
+The following examples represent the composition `:[:0 × :0]` or `(λx.(x x)) (λy.(y y))` (composition of the identity function to itself, returned as the result of the program), `[:0 × :0] : 1` or `λx.((λy.(y y)) (λz.(z z)))` (the same composition but qualified by a variable in its parent context) and `λx.(x ((λy.(y y)) (λz.(z z))))` (the outer variable `x` applied to the result of the composition).
 
 ## Examples
 
