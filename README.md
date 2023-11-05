@@ -331,23 +331,6 @@ Two recursive functions (the non-halting expression reduces to itself, it is the
 
 ![Examples](https://github.com/jotadiego/Lambad/blob/main/img/recursive.png)
 
-```
-[0.0; -1.1; :2 × 0.0; -1.1; :2] :1
-
-[.;-1.:x.;-1.:]:
-[.;-1.:×.;-1.:]:
-[.;-1.:x.;-1.:]:
-
-[ : 0 × + + 0.2; 1.2; 3.4; : 5] 0.1; [ :0 × + : 0] 2.3; : 4
-ghci>
-
-[0.2;1.2;3.:]0.;[+:0]2.:
-[0.2;1.2;3.:]0.[+:0]2.:
-[0.2;1.2;3.:]0.[+:0]2.:
-ghci>
-```
-
-
 ### Turing-complete Combinators
 
 Some combinators which are known to form Turing-complete systems ([SKI](https://en.wikipedia.org/wiki/SKI_combinator_calculus), [Iota](https://en.wikipedia.org/wiki/Iota_and_Jot)).
