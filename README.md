@@ -253,15 +253,15 @@ Shorteneed Lambad does _not_ address the first problem but provides useful short
 
 ```bnf
 <program>      ::= <vars> <ops> ":" <return_value>
-<vars>         ::= "" | "+" <vars> | <natural> "+" <vars>
+<vars>         ::= "" | "+" <vars> | <natural> "+"
 <ops>          ::= "" | <apply> <ops> | <compose> <ops> | <apply2> | <apply2> <compose> <ops>
 <apply>        ::= <id> "." <id> ";"
 <apply2>       ::= <id> "." <id>
 <id>           ::= <natural> | "-" <natural> | ""
 <natural>      ::= <digit> | <natural> <digit>
 <digit>        ::= "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9" 
-<compose>      ::= "[" <program> "×" <program> "]"
-<return_value> ::= <id> | <compose>
+<compose>      ::= "[" <program> "×" <program> "]" | "[" <program> "]"
+<return_value> ::= <id> | "[" <program> "×" <program> "]"
 ```
 
 ## LambadA - a visual representation for Lambad programs
@@ -331,6 +331,23 @@ Two recursive functions (the non-halting expression reduces to itself, it is the
 
 ![Examples](https://github.com/jotadiego/Lambad/blob/main/img/recursive.png)
 
+```
+[0.0; -1.1; :2 × 0.0; -1.1; :2] :1
+
+[.;-1.:x.;-1.:]:
+[.;-1.:×.;-1.:]:
+[.;-1.:x.;-1.:]:
+
+[ : 0 × + + 0.2; 1.2; 3.4; : 5] 0.1; [ :0 × + : 0] 2.3; : 4
+ghci>
+
+[0.2;1.2;3.:]0.;[+:0]2.:
+[0.2;1.2;3.:]0.[+:0]2.:
+[0.2;1.2;3.:]0.[+:0]2.:
+ghci>
+```
+
+
 ### Turing-complete Combinators
 
 Some combinators which are known to form Turing-complete systems ([SKI](https://en.wikipedia.org/wiki/SKI_combinator_calculus), [Iota](https://en.wikipedia.org/wiki/Iota_and_Jot)).
@@ -340,7 +357,7 @@ Some combinators which are known to form Turing-complete systems ([SKI](https://
 | S combinator | `λx.λy.λz.((x z) (y z))` | `+ + 0.2; 1.2; 3.4; :5` | **`0.2;1.2;3.:`** |
 | K combinator | `λx.λy.x` | `+ : 0` | **`+:0`** |
 | I combinator | `λx.x` | `: 0` | **`:`** |
-| Iota combinator | `λf.((f (λa.λb.λc.((ac)(bc)))) (λd.λe.d))` | `[ : 0 × + + 0.2; 1.2; 3.4; : 5] 0.1; [ :0 × + : 0] 2.3; : 4` | **`[0.2;1.2;3.:]0.;[+:0]2.:`** |
+| Iota combinator | `λf.((f (λa.λb.λc.((ac)(bc)))) (λd.λe.d))` | `[ : 0 × + + 0.2; 1.2; 3.4; : 5] 0.1; [ :0 × + : 0] 2.3; : 4` | **`[0.2;1.2;3.:]0.[+:0]2.:`** |
 
 ![Examples](https://github.com/jotadiego/Lambad/blob/main/img/combinators.png)
 
