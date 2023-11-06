@@ -370,7 +370,7 @@ Operations on Booleans can be defined taking advantage of this 'choose one or th
 | Operation | Description | Lambda expression | Verbose Lambad | Shortened Lambad |
 |----------|----------|-------------------|----------------|------------------|
 | P **and** Q | If P is _true_, take Q, else take P | `λp.λq.((p p) q)` | `+ 0.0; 2.1; : 3` | **`+0.0;.1:`** |
-| P **or** Q | If P is _true_, take P, else take Q | `λp.λq.((p q) p)` | `+ 0.1; 2.0; : 3` | **`.1;.0:`** |
+| P **or** Q | If P is _true_, take P, else take Q | `λp.λq.((p q) p)` | `+ 0.1; 2.0; : 3` | **`0.1;.0:`** |
 | **not** P | If P is _true_, build a _false_ value, else build a _true_ | `λp.λf.λt.((p t) f)` | `+ + 0.2; 3.1; : 4` | **`0.2;.1:`** |
 
 ![Examples](https://github.com/jotadiego/Lambad/blob/main/img/Booleans.png)
@@ -395,40 +395,18 @@ This code corresponds to the lambda expression `((λp.λq.((p p) q)) (λf.λt.t)
 More complex propositions such as `(P or Q) and not (P and Q)` can be made by combining the aforementioned operators:
 
 ```
-+ We'll make two variables available for P and Q
-[ (P or Q) and not (P and Q)
-    [ (P or Q) and ____
-        +0.0;.1:    And
-      ×
-        [  P or Q
-            [ P or ____
-                .1;.0:   Or
-              ×
-                :-1      P
-            ]
-          ×
-            :-2     Q
-        ]
-    ]
-    ×
-    [ Not (P and Q)
-        0.2;.1:     Not
-        ×
-        [ P and Q
-            [ P and ___
-                +0.0;.1:    And
-              ×
-                :-1      P
-            ]
-          ×
-            :-2     Q
-        ]
-    ]
-]
-:    Return λP λQ ((P or Q) and not (P and Q))
++           Make two variables available for P and Q
+[0.1;.0:]   The OR operator     position two
+.0; .1;     P or Q              position four
+[+0.0;.1:]  The AND operator    position five
+.0; .1;     P and Q             position seven
+[0.2;.1:]   The NOT operator    position eight
+.7;         not (P and Q)       position nine
+5.4; .9;    (P or Q) and not (P and Q)
+:
 ```
 
-Or, for short: `+[[+0.0;.1:×[[.1;.0:×:-1]×:-2]]×[0.2;.1:×[[+0.0;.1:×:-1]×:-2]]]:`.
+Or, for short: `+[0.1;.0:].0;.1[+0.0;.1:].0;.1[0.2;.1:].7;5.4;.9:`.
 
 #### Natural numbers
 
@@ -472,6 +450,26 @@ Once we get to multiplication, we're forced to pay the price of our naïvity. It
 3.; Equivalent to (λms.λmz.((m mz) ms)) ((λns.λnz.((n nz) ns)) s)
 :
 ```
+
+This, however, results in a 'successor first' value, we need to compound the result with the 'flip' operator  `λf.λa.λb.((f b) a)` (`0.2;.1:`) in order to get back the intended result. For instance, in order to compute `2 × 3` we'd need to go throw this cumbersome expression:
+
+```
+:[
+   0.2;.1:    Flip
+ ×
+   :[
+        :[
+            2+[-1.1;.0:][-2.1;.0:].2;3.: awkward multiplication
+          ×
+            1.0;1.:   two
+        ]
+      ×
+        1.0;1.;1.:    three
+   ]
+]
+```
+
+Ugly as it may seem, the resulting Lambad program is can be converted to a similarly unwieldly lambda expression which can be reduced to `λz.λs.s (s (s (s (s (s z))))`, our representation of 'six'.
 
 When building a programming language to be used for practical purposes, having a much simpler multiplication (`1.2;0.:`) is well worth the cost of having a less elegant representation for numbers, so it would be logical to stick to the well-justified convention of using the 'successor first' order, even if it means that we'd have counterintuitive expressions such as `:1` for 'zero'. However, by this point there should be no doubts that logic and practicality are _not_ priorities in the design of Lambad. We'll stick to the 'zero first' order, with its cumbersome multiplication and slightly nicer numbers because I _like_ it that way.
 
