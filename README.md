@@ -34,6 +34,11 @@ _A Lambda Calculus-like Programming Language, but Worse_
         - [Numerical encoding](#numerical-encoding)
         - [Bit by bit](#bit-by-bit)
         - [Byte by byte](#byte-by-byte)
+- [The Lambad Interpreter](#the-lambad-interpreter)
+    - [How it works](#how-it-works)
+        - [Modes](#modes)
+        - [Subprogram Embedding](#subprogram-embedding)
+- [API reference](#api-reference)
 
 ## Concept (and a brief introduction to lambda calculus)
 
@@ -50,6 +55,8 @@ To the best of my knowledge, _Lambad_ does not contribute any helpful features t
 _Lambad_ expressions can also be represented visually using a scheme called **_LambadA_** (short for Lambad Art). In principle, a _LambadA_ graph could be an useful way of conceptualizing how an operation works, but in practice it's just an abstract squiggle hardly any more legible than the Lambad program it represents. Automatic conversion between _Lambad_ programs and _LambadA_ graphs _could_ be handled programatically, although there is no such implementation so far.
 
 It must also be said that while lambda calculus is connected to Church and churches are places of worship, Lambad [consistently strays away from any good-intentioned god](## "a feature it shares with other lambda-calculus derivatives, very much including Haskell").
+
+If, for whatever reason, you still want to try it out, check the [interpreter](#the-lambad-interpreter) included in this repository.
 
 ## Even more lambda calculus concepts
 
@@ -504,7 +511,7 @@ In addition to our three symbols, we'll need a way to represent an empty string.
 - `λe.λdit.λdah.λs.s e` or `3.0:` for the string ` ` (the empty string followed by a space).
 - `λe.λdit.λdah.λs.dit (dit e)` or `3+1.0;1.:` for the string `..` (two dots, equivalent to the letter 'i').
 - `λe.λdit.λdah.λs.dah (dit e)` or `3+1.0;2.:` for the string `.-` (two dots, equivalent to the letter 'a'). The lambda expression seems to show the 'dit' and the 'dah' in the wrong order as the function to append a new character to the end of the string must be placed on the left. By contrast, the `1` and `2` representing 'dits' and 'dahs' in Lambad _do_ appear in the right order, making Lambad notation considerably more convenient this time around.
-- `λe.λdit.λdah.λs.(dit (dit (dah (s (dit (dit (dah (dit (s (dit (dah( (dit (s (dah (dah (dah (s (dah (dah (dit (s (s (dah (dah (dah (s (dit (dit (dah (dit (s (dit (dit (dah (dit (s (dit (s (dit (dit (dit (dit e)))))))))))))))))))))))))))))))))))))))))))` or `3+1.0;1.;1.;1.;3.;1.;3.;1.;2.;1.;1.;3.;1.;2.;1.;1.;3.;2.;2.;2.;3.;3.;1.;2.;2.;3.;2.;2.;2.;3.;1.;2.;1.;3.;1.;2.;1.;1.;3.;2.;1.;1.:` for `.... . .-.. ---  .-- --- .-. .-.. -..`, equivalent to 'hello world'.
+- `λe.λdit.λdah.λs.(dit (dit (dah (s (dit (dit (dah (dit (s (dit (dah( (dit (s (dah (dah (dah (s (dah (dah (dit (s (s (dah (dah (dah (s (dit (dit (dah (dit (s (dit (dit (dah (dit (s (dit (s (dit (dit (dit (dit e)))))))))))))))))))))))))))))))))))))))))))` or `3+1.0;1.;1.;1.;3.;1.;3.;1.;2.;1.;1.;3.;1.;2.;1.;1.;3.;2.;2.;2.;3.;3.;1.;2.;2.;3.;2.;2.;2.;3.;1.;2.;1.;3.;1.;2.;1.;1.;3.;2.;1.;1.:` for `.... . .-.. .-.. ---  .-- --- .-. .-.. -..`, equivalent to 'hello world'.
 - `λe.λdit.λdah.λs.(dit (dit (dit (dah (dah (dah (dit (dit (dit e)))))))))` or `3+1.0;1.;1.;2.;2.;2.;1.;1.;1.:` for `...---...`, a code that will come in handy if you ever need to represent text in morse code using lambda calculus.
 
 There are various downsides to using this encoding, the most obvious being the fact that the resulting expressions end up being excessively long. Other issue include the lack of distinction between lowercase and uppercase characters as well as the wider lack of Unicode support which, in our present day and age, is hard to justify (on good Samuel Morse's behalf, his code predates Unicode by over a century, so he can get away with it).
@@ -621,4 +628,347 @@ Unsurprisingly, the corresponding _LambadA_ graph isn't much nicer:
 
 ![Examples](https://github.com/jotadiego/Lambad/blob/main/img/lambad_helloworld.png)
 
-Back to Church encodings, the church emoji ⛪ is represented in Unicode as a sequence of three bytes `0xE2 0x9B 0xAA` or, in decimal, `226, 155, 170`. Accordingly, the Lambad church encoding can be given as `226.256;155.;170:`.
+Back to Church encodings, the church emoji ⛪ is represented in Unicode as a sequence of three bytes `0xE2 0x9B 0xAA` or, in decimal, `226, 155, 170`. Accordingly, the Lambad church encoding can be given as `226.256;155.;170.:`.
+
+# The Lambad Interpreter
+
+An interpreter for the _Lambad_ language is included in this repository both as _Haskell_ source code (which you might compile with the GHC compiler as `ghc LambadInterpreter.hs`) and as a Windows executable for those who wouldn't mind to go through the trouble of getting a working Haskell environment in Windows (the experience is _slightly_ less traumatic in most Linux distros).
+
+The fact that I wrote the interpreter in Haskell might seem a bit surprising considering I made a couple comments in the introduction that could suggest I thought Haskell wasn't very good. In truth, however, I don't consider Haskell to be bad, I just believe it's outright terrible. That made it _thematically_ appropriate for the task, though. Also, I spent a couple years coding in PHP, so I've survived worse stuff.
+
+## How it works
+
+_LambadInterpreter_ is a command line program which expects at least three arguments: a **mode** flag (which controls the behavior of the interpreter), a path for an **output file** and a path for an **input file**. Additional arguments might be used for subprogram embedding, an extension to Lambad which will be explained later on.
+
+For instance, if the program is compiled to `LambadInterpreter.exe`, then you might use the following command to compute the equivalent reduced lambda expression to a Lambad program written in the file `my_program.lambad` and save the result to a file `result.txt`:
+
+```
+LambadInterpreter.exe x result.txt my_program.lambad
+```
+
+Keep in mind that output files may be overwritten!
+
+File extensions don't matter; you can save your Lambad program as just a `.txt` if you want (in fact, a series of examples are included in the repository with the `.txt` extension to make sure anyone can open them). Programs might be written in either Verbose or Shortened Lambad and may freely include whitespace and comments as long as they don't contain any character used in Lambad syntax (digits, `.`, `:`, `;`, `+`, `-`, `[`, `]` and `×`).
+
+### Modes
+
+The interpreter supports 13 modes which determine what is it exactly that the interpreter is meant to do. Options include transforming between Verbose and Shortened Lambad representations, transforming a Lambad program into the corresponding lambda calculus term, performing computations by reducing those terms and reinterpreting results as booleans, natural numerals or text.
+
+The main modes are as follows:
+
+| Mode | Flag | Description | Sample input | Sample output |
+|------|------|-------------|--------------|---------------|
+| Verbose Lambad | **`v`** | Representation of the program in comment-less Verbose Lambad. | `.:` | `0.0;:1` |
+| Shortened Lambad | **`w`** | Representation of the program in a 'canonical' form of Shortened Lambad. | `0.0; : 1` | `.:` |
+| Lambda | **`l`** | Equivalent lambda expression |  `:[.:×:1]` | `(λx.(x x) λy.λz.z)` |
+| Reduced lambda | **`x`** | Equivalent lambda expression, reduced as much as possible | `:[.:×:1]` | `λx.x` |
+| Boolean | **`b`** | Reduced lambda interpreted as a Church-encoded boolean | `+:0` | `False` |
+| Natural number | **`n`** | Reduced lambda interpreted as a Church-encoded natural number | `+:0` | `0` |
+| Morse-encoded text | **`m`** | Reduced lambda interpreted as a text using the Morse-based encoding | `3+1.0;2.;3.;2.;1.;1.;1.;3.;2.;1.;2.;1.:` | `"ABC"` |
+| utf8-encoded text | **`t`** | Reduced lambda interpreted as a text using the byte-by-byte encoding | `97.256;98.;99.:` | `"abc"` |
+
+Reduced lambda expressions (as output in mode **`x`**, but also used to compute values in modes `b`, `n`, `m` and `t`) are computed by repeatedly applying the β-reduction operation until no further β-reductions are possible. There are lambda expressions (and, consequently, _Lambad_ programs) for which this computations can go on indefinitely; the equivalent to a non-halting Turing machine or an infinite loop in a traditional program. One such expression is given in the example `omega.txt`, corresponding to the Lambda expression `(λx.x x λy.y y)` which β-reduces to itself. Naturally, evaluating such an expression with the modes `x`, `n`, `m` and `t` will result in the program entering an endless loop.
+
+Although their name might suggest otherwise, the result of a β-reduction might actually contain more terms than the original expression. This runs the risk that a given expression might grow so large that the computer running the interpreter doesn't have enough memory to represent it.
+
+One way to prevent these 'unsafe' executions is to abort the computation once the number of reduction operations or the number of terms within an expression surpasses a certain bound; once an expression has been reduced a myriad times or exceeded a myriad terms, we'll stop making any further attempts to reduce the expression, even though there _might_ exist a solution that could be achieved through a larger finite number of steps (it is impossible to determine whether computations on an arbitrary lambda expression will result in a loop or not; this is equivalent to Turing's famous Halting Problem). The _Lambad_ interpreter implements 'safe modes' which add these restrictions, with computations being aborted whenever the amount of β-reduction steps or the number of terms surpasses a _literal_ myriad (that is to say, 10 000).
+
+| Mode | Flag | Description | Sample input | Sample output |
+|------|------|-------------|--------------|---------------|
+| Safe Reduced lambda | **`xs`** | Equivalent lambda expression, 'safely' reduced | `:[.:×:1]` | `λx.x` |
+| Safe Boolean | **`bs`** | 'Safely' reduced lambda interpreted as a Church-encoded boolean | `+:0` | `False` |
+| Safe natural number | **`ns`** | 'Safely' reduced lambda interpreted as a Church-encoded natural number | `+:0` | `0` |
+| Safe Morse-encoded text | **`ms`** | 'Safely' reduced lambda interpreted as a text using the Morse-based encoding | `3+1.0;2.;3.;2.;1.;1.;1.;3.;2.;1.;2.;1.:` | `"ABC"` |
+| Safe utf8-encoded text | **`ts`** | 'Safely' reduced lambda interpreted as a text using the byte-by-byte encoding | `97.256;98.;99.:` | `"abc"` |
+
+A program output file might list error values in case a syntactically valid expression cannot be reduced within the limits of the safe modes or cannot be interpreted in the desired format (for instance, when interpreting an expression not corresponding to a Church-encoded boolean with modes `b` or `bs`). Malformed Lambad programs will result in an error when runnign the interpreter (make sure you aren't missing some colon!).
+
+### Subprogram Embedding
+
+Lambad programs, much like the lambda expressions they are based on, may only define a computation on a certain, fixed value. We might, for instance, write a Lambad program that computes the sum of the (Church-encoded) numbers '1' and '2' whose equivalent lambda expression will reduce to our Church-numeral for '3', but that will be the only value our program is able to compute.
+
+```
+:[
+    :[
+        3+1.2;.3;0.;.3:    ~ λ m  λn → m plus n
+      ×                    applied to
+        1.0:               ~ one
+    ]
+  ×                        applied to
+    1.0;1.:                ~ two
+]
+```
+
+Note that the 'addition' expression corresponding to the subprogram `3+1.2;.3;0.;.3:` can be applied to any two numeric values to compute their sum but, by itself, it's a single, static, non-β-reducible expression; the addition computation can only be performed when the 'addition' expression is applied to two arguments (like the  `1.0:`  and `1.0;1.:` in the previous example) which are built into the _Lambad_ program. If we wanted to compute a different addition, such as '2 + 2', we'd have to write a new program differeing only on the parts encodings arguments:
+
+```
+:[
+    :[
+        3+1.2;.3;0.;.3:    ~ λ m  λn → m plus n
+      ×                    applied to
+        1.0;1.:            ~ two
+    ]
+  ×                        applied to
+    1.0;1.:                ~ two
+]
+```
+
+The Lambad interpreter extends the base Lambad language with **subprogram embedding**, a feature that allows us to create a template for a valid Lambad program with placeholders which will be replaced by code contained in a different file. For instance, we might define a template for addition with two placeholders (`{1}` and `{2}`) as follows:
+
+```
+:[
+    :[
+        3+1.2;.3;0.;.3:    ~ λ m  λn → m plus n
+      ×                    applied to
+        {1} some first argument
+    ]
+  ×                        applied to
+    {2} some second argument
+]
+```
+
+Then, we might compute any sum by substituting the placeholders with the representations of the two numbers we wish to add up. This is done by writing the missing bits of Lambad code as additional files which must be referenced as extra arguments for the Lambad interpreter executable (after the command-line arguments for mode, output file and input file). For instance:
+
+```
+LambadInterpreter.exe ns result.txt additionTemplate.lambad firstArgument.txt secondArgument.txt
+```
+
+Any placeholder with a positive number _n_ inside curly braces (`{1}`, `{2}`, `{3}` and so on) found in the main input file will be replaced by the content of the _n_-th optional argument. The same placeholders might occur multiple times within template with all its occurrences being replaced when running the program. Neither the input program template nor argument subprograms need to be syntactically valid on their own; syntax will only be validated after all substitutions are made.
+
+The example files contain a number of operators using this feature, as well as predefined expressions for booleans True and False as well as numbers from 0 to 3. Thus, we might assemble and evaluate a _Lambad_ program computing `True AND False` as
+
+```
+LambadInterpreter.exe b op_or.txt boolTrue.txt boolFalse.txt
+```
+
+or multiply `3 × 2` as
+
+```
+LambadInterpreter.exe n op_multiply.txt num3.txt num2.txt
+```
+
+# API reference
+
+As part of constructing the _Lambad_ interpreter in Haskell, I wrote a few modules modelling _Lambad_ and _lambda_ expressions. This section provides a quick overview of the data types and methods exported by each module.
+
+## `Lambad.hs`
+
+Imports `Lambda.hs`.
+
+### Datatype: `LambadProgram`
+
+This datatype models a _Lambad_ program. A `LambadProgram` might take two constructors: `LambadContext` (followed by the number of available variables in the context, a list of `LambdaStatement` values and the position indicating its return value) or `LambadComposition` (indicating the composition between two values of `LambadProgram`).
+
+```haskell
+data LambadProgram = LambadContext Int [LambadStatement] Int | LambadComposition LambadProgram LambadProgram
+```
+
+`LambadProgram` is an instance of `Show`; the `show` function returns a Shortened Lambad representation for the program (although using 'x' instead of '×' for compatibility reasons).
+
+### Datatype: `LambadStatement`
+
+This datatype models an application or a composition statement within a Lambad program (variable introduction statements are obviated as the `LambadContext` constructor for `LambadProgram` already keeps track of the number of variables bound within a context)
+
+```haskell
+data LambadStatement = Application Int Int | Composition LambadProgram LambadProgram
+```
+
+`LambadStatement` is an instance of `Show`; the `show` function returns a (Verbose) Lambad representation of the statement (although using 'x' instead of '×' for compatibility reasons).
+
+### Exported functions
+
+```haskell
+showVerbose :: LambadProgram -> String
+```
+
+Returns a Verbose Lambad representation for a `LambadProgram` (also using 'x' instead of '×'; blame Haskell's tricky non-ASCII support).
+
+```haskell
+isIdentity :: LambadProgram -> Bool
+```
+
+Returns `True` if a `LambadProgram` is identical to `LambdaContext 1 [] 0`, the `:` program corresponding to the identity function expression `λx.x`.
+
+```haskell
+parse :: Data.Text.Text -> LambadProgram
+```
+
+Parses a `Text` containing a Lambad program into the corresponding `LambadProgram` value. **Throws an error an halts execution** if the `Text` doesn't correspond to a valid Lambad program.
+
+```haskell
+toLambda :: LambadProgram -> Lambda
+```
+
+Converts a representation of a Lambad program into a representation for an equivalent unreduced Lambda expression.
+
+## `Lambda.hs`
+
+### Datatype: `Lamba`
+
+This datatype models lambda expressions. Variables are identified as integers rather than letters.
+
+```Haskell
+data Lambda = LVar Int | LAbs Int Lambda | LApp Lambda Lambda
+```
+
+`Lambda` is an instance of `Show`; the `show` function returns a representation of the lambda expression in the usual notation except that using a capital `L` instead of the Greek letter `λ`, again due to charset encoding issues.
+
+`Lambda` is also an instance of `Eq`; two expressions are evaluated as equal (`==`) when they are equivalent up to an α-conversion.
+
+### Exported functions
+
+```Haskell
+maxVarId :: Lambda -> Int
+```
+
+Returns the highest integer value referenced as a variable in a `Lambda` expression.
+
+```Haskell
+normalize :: Lambda -> Lambda
+```
+
+Changes variable indices so that only numbers from 0 to _n_ are used. Could be seen as an α-conversion.
+
+```Haskell
+canReduce :: Lambda -> Bool
+```
+
+Indicates whether a β-reduction operation can be performed on the expression.
+
+```Haskell
+reduce :: Lambda -> Lambda
+```
+
+Returns a (once) β-reduced expression.
+
+```Haskell
+maxReduce :: Lambda -> Lambda
+```
+
+Applies as many β-reductions to an expression as possible. **May trigger an infinite loop.**
+
+```Haskell
+size :: Lambda -> Int
+```
+
+Returns the number of terms (constructors) within the expression.
+
+```Haskell
+safeReduce :: Lambda -> Maybe Lambda
+```
+
+Attempts repeated β-reductions on an expression. If the process doesn't stop after 10000 reduction steps or if the expression reaches as `size` above 10000, the process is aborted in and  _`Nothing`_ value is returned. Otherwise, _`Just l`_ is returned for a reduced `l :: Lambda`.
+
+```Haskell
+checkLambdaFormat :: Int -> Int -> Lambda -> Bool
+```
+
+Validates whether a lambda expression is structured as sequence of _m_ (first argument) abstractions followed by zero or more of applications of a variable different to _n_ (second argument) to the variable _n_.
+
+For instance, Lambad Church-encoded naturals must validate `checkLambdaFormat 2 0`, with two variable bound variables (corresponding to the zero mark and the successor mark) and any number of applications of the successor function to variable `0`.
+
+```Haskell
+isBoolean :: Lambda -> Bool
+```
+
+Indicates whether a `Lambda` expression corresponds to a Boolean representation.
+
+```Haskell
+toBoolean :: Lambda -> Maybe Bool
+```
+
+Converts a `Lambda` expression into a boolean if it has the right format (is `λx.λy.x` or `λx.λy.y`).
+
+```Haskell
+lFalse :: Lambda
+lFalse = LAbs 0 (LAbs 1 (LVar 0))
+```
+
+The `Lambda` expression corresponding to the representation of _False_ used in Lambad (`λx.λy.x`, `+:0`).
+
+```Haskell
+lTrue :: Lambda
+lTrue = LAbs 0 (LAbs 1 (LVar 1))
+```
+
+The `Lambda` expression corresponding to the representation of _True_ used in Lambad (`λx.λy.y`, `:1`).
+
+```Haskell
+isNatural :: Lambda -> Bool
+```
+
+Indicates whether a `Lambda` expression corresponds to a natural number representation.
+
+```Haskell
+toNatural :: Lambda -> Maybe Int
+```
+
+Converts a `Lambda` expression into a (non-negative) integer if it has the right format.
+
+```Haskell
+lZero :: Lambda
+lFalse = LAbs 0 (LAbs 1 (LVar 0))
+```
+
+The `Lambda` expression corresponding to the representation of 0 used in Lambad (`λz.λs.z`, `+:0`).
+
+```Haskell
+lSucc :: Lambda
+lSucc = LAbs 0 (LAbs 1 (LAbs 2 (LApp (LApp (LVar 0) (LApp (LVar 2) (LVar 1))) (LVar 2))))
+```
+
+A `Lambda` expression corresponding to `λn.λz.λs.((n (s z)) s)` which, when applied to the representation of a natural number _n_, reduces to the representation of its successor _n+1_.
+
+```Haskell
+isText :: Lambda -> Bool
+```
+
+Indicates whether a `Lambda` expression corresponds to a 'byte-by-byte' string representation.
+
+```Haskell
+toText :: Lambda -> Maybe Data.Text.Text
+```
+
+Converts a `Lambda` expression into a string if it has the right format given by `isText`.
+
+```Haskell
+toByteList :: Lambda -> Maybe [Int]
+```
+
+Converts a `Lambda` expression into a sequence of integers from 0 to 255 (possibly representing a list of bytes) if it has the right format given by `isText`.
+
+## `Remorse.hs`
+
+**R**epresentation of strings **E**ncoded using **Morse** code. Imports `Lambda.hs`.
+
+### Exported functions
+
+```Haskell
+isMorse :: Lambda -> Bool
+```
+
+Indicates whether a `Lambda` expression corresponds to a string representeded as a Morse-based sequences of dits, dahs and spaces.
+
+```Haskell
+toMorse :: Lambda -> Maybe String
+```
+
+Converts a `Lambda` expression into a string with the corresponding Morse code if it has the right format given by `isMorse`.
+
+```Haskell
+internationalMorseCode :: Map String Char
+```
+
+Maps strings corresponding to Morse codes to the corresponding uppercase Latin letter or numeral as defined by the International Morse Code (for instance `".-"` to `'A'`). The string `"/"` is interpreted as a space between words. The 'SOS' (`...---...`) code is mapped to an exclamation sign `'!'`. No other punctuation marks are given.
+
+```Haskell
+morseToText :: String -> String
+```
+
+Transforms a string with Morse code to text as per the `internationalMorseCode`.
+
+```Haskell
+toMorseText :: Lambda -> Maybe String
+```
+
+Converts a `Lambda` expression into a decoded string if it has the right format given by `isMorse`.
