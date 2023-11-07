@@ -380,7 +380,7 @@ In order to use these operators, we need to apply the expression for the operato
 ```
 :
 [
-    [
+    :[
         +0.0;.1:    And
       ×
         :1          True
