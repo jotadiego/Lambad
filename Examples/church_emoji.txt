@@ -1,0 +1,2 @@
+Church emoji encoded as byte by byte lambda ~ technically both a church encoding and not a Church encoding
+226.256;155.;170.:

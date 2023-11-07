@@ -1,0 +1,14 @@
+:[
+   0.2;.1:    Flip
+ ×
+   :[
+        :[
+            2+[-1.1;.0:][-2.1;.0:].2;3.: awkward multiplication
+          ×
+            {1}
+        ]
+      ×
+        {2}
+   ]
+]
+Expects two additional numerical arguments which will be multiplied together

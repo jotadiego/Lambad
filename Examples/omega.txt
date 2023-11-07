@@ -1,0 +1,3 @@
+:[.: × .:]
+The corresponding lambda expression cannot be reduced to a normal form
+As a result this corresponds to a non halting computation ~ an infinite loop

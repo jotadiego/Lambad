@@ -1,0 +1,11 @@
+:
+[
+    :[
+        0.1;.0:    And
+      ×
+        {1}
+    ]
+  ×
+    {2}
+]
+Expects two additional boolean arguments which will be ORed
