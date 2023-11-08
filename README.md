@@ -64,10 +64,10 @@ In order to [approach Lambad](## "not necessarily a good idea, be warned"), it w
 
 Fortunately, as mentioned above, lambda calculus is remarkably simple in its structure. A lambda expression (or [term](## "the two words are used equivalently, or at least _I_ do so")) can only take one of the following three forms:
 - A _variable_ (usually represented by a letter such as `x` or `y`, it represents a certain value which could possibly be a function)
-- An _application_ of one lambda expression to another. This is represented by writing one expression after the other, seperated by a space (you might also want to add brackets as well). For instance, `f x`  represents an application of a function `f` (represented as a variable) to a value `x` (another variable); what we'd write as _f(x)_ in maths. Keep in mind that applications can have more complex lambda terms on either side.
+- An _application_ of one lambda expression to another. This is represented by writing one expression after the other, separated by a space (you might also want to add brackets as well). For instance, `f x`  represents an application of a function `f` (represented as a variable) to a value `x` (another variable); what we'd write as _f(x)_ in maths. Keep in mind that applications can have more complex lambda terms on either side.
 - An _abstraction_ which indicates an expression that can be computed for a certain variable. This can be understood as a definition for a function with a single variable. In maths, we might define a function by indicating what variable we're using and what we're doing with; for instance, in the identity function  _f(x) = x_ the left hand side (the _f(x)_) tells us we're using a variable _x_ while the right hand side (_= x_) tells us how we compute the result. Lambda abstractions do the same, except that they use the funky notation `λ VARIABLE . EXPRESSION` (in the case of the identity, _f(x) = x_ we get `λx.x`) and we require the 'body' of the function to also be a lambda expression. The expression within an abstraction is sometimes referred to as its 'body'. Keep in mind that the results might also be functions themselves; in general just be aware that [everything can and _will_ work as a function](https://en.wikipedia.org/wiki/First-class_function).
 
-These constructor operations can be used repeatedly to create increasingly complex lambda terms. For instance, `λf.λx.(f (f x))` is a lambda expression which can be interpreted as an _apply twice_ opperator: it expects a function parameter `f`, a value `x` and 'returns' a `(f (f x))`, which in standard mathematical notation corresponds to `f(f(x))` (`f` applied twice to `x`). Observe that this longer expression can be built using the constructors as follows:
+These constructor operations can be used repeatedly to create increasingly complex lambda terms. For instance, `λf.λx.(f (f x))` is a lambda expression which can be interpreted as an _apply twice_ operator: it expects a function parameter `f`, a value `x` and 'returns' a `(f (f x))`, which in standard mathematical notation corresponds to `f(f(x))` (`f` applied twice to `x`). Observe that this longer expression can be built using the constructors as follows:
 - `x` is a valid expression because it is a _variable_.
 - `f` is a valid expression because it is a _variable_.
 - `f x` is a valid expression because it is an _application_ of the expression `f` to the expression `x`.
@@ -83,7 +83,7 @@ There are a number of subtleties in the way lambda expressions are used in compu
 
 Programmers who haven't had to deal with functional programming (_yet_) might have noticed something odd: lambda calculus has _variables_ that might stand for a value (including functions!) but it has no way of _setting_ the value of a variable. This is by design; in lambda calculus we aren't concerned with with values, it's only functions and the way they might be composed that really matters. Back to the _apply twice_ example, we could have had just `f (f x)` to represent _f(f(x))_, but we aren't able to do anything with that expression as there's nothing to tell us how `f` and `x` might behave. That is why we're interested in including abstractions as in `λf.λx.(f (f x))`: this allows us to receive `f` and `x` as values which might have some internal structure (such as being abstractions or applications themselves) which might allow us to operate further.
 
-The occurrences of an abstraction's variable within its body (such as `x` and `f` in `λf.λx.(f (f x))`) are said to be _bound_. By contrast, variables which are not bound within an abstraction (such as `f` in the intermediate step `λx.(f (f x))`) are said to be _free variables_. When handling computations, we're only interested in lambda expressions without any free variables ('fully qualified', which is why _Lambad_ is only able to build terms without free variables.
+The occurrences of an abstraction's variable within its body (such as `x` and `f` in `λf.λx.(f (f x))`) are said to be _bound_. By contrast, variables which are not bound within an abstraction (such as `f` in the intermediate step `λx.(f (f x))`) are said to be _free variables_. When handling computations, we're only interested in lambda expressions without any free variables ('fully qualified'), which is why _Lambad_ is only able to build terms without free variables.
 
 Given an arbitrary lambda expression which _might_ contain free variables, it's pretty simple to transform it into a Lambad-compatible fully qualified expression: just add abstractions for any free variable in the same way we transformed `f (f x)` into `λf.λx.(f (f x))`. This can be fairly useful: if know we're only using a certain set of variables and all of our expressions are meant to be fully-qualified, we could write the unqualified form with free variables _as a shorthand_: then _`f (f x)`_ wouldn't stand for the actual expression `f (f x)` but just by an abbreviation for `λf.λx.(f (f x))`. This sort of abbreviations are justifiedly not allowed in standard lambda calculus (where non-fully-qualified expressions such as `f (f x)` are valid) but they will be a major component of _Lambad_, where the requirement that all expressions be fully qualified prevents any ambiguity.
 
@@ -133,14 +133,14 @@ Whitespace, line breaks, alphabetic letters and all non-numeric characters not i
 4.3; Application (y z) s in position five
 0.5; Application x ((y z) s) in position six
 6.2; Application (x ((y z) s)) s in position seven
-: 7 Return postion seven ~ λx.λy.λz.λs.(x ((y z) s))
+: 7 Return position seven ~ λx.λy.λz.λs.(x ((y z) s))
 ```
 
 That last example could be noted as being worryingly clear; fortunately Lambad's lack of practicality and cursedness is derived from the inherent cursedness of more complicated lambda calculus expressions and thus improved legibility is not too much of a concern for its status as an esolang.
 
 ### Program context and expression identifiers
 
-The **context** of a Lambad conlang consists of two elements: an ordered, indexed list of variables which will be bound in any returned expressions and a list of expressions. Expressions listed in the content will appear to have free variables but will be qualified by the variables in the context.
+The **context** of a Lambad program consists of two elements: an ordered, indexed list of variables which will be bound in any returned expressions and a list of expressions. Expressions listed in the content will appear to have free variables but will be qualified by the variables in the context.
 
 Elements are never removed from the context, once added they'll remain available in that position; which makes it possible to reutilize one expression multiple times when building further expressions. At any one point, all 'intermediate steps' will be available.
 
@@ -160,7 +160,7 @@ Variable introduction is only allowed at the start of a program.
 
 Further expressions may be added to the context by applying an expression to another (or by applying an expression to itself, as in `λx.(x x)`).
 
-This is done by referencing the first expression of the application (the function to apply), writing a dot **`.`**, referencing the second expression (the argument) and then writing a semicolong **`;`**. The resulting expression is subsequently appended to the context expression list.
+This is done by referencing the first expression of the application (the function to apply), writing a dot **`.`**, referencing the second expression (the argument) and then writing a semicolon **`;`**. The resulting expression is subsequently appended to the context expression list.
 
 References to the expression listed in the _n_ position within the context expression list are made by writing the corresponding number; for instance `0.0;` corresponds to applying the default variable to itself, `x x`. Using an _n_ larger than the last defined position in the list will result in an error. For subprograms negative indexes may be used to reference variables in an outer context, more on that later.
 
@@ -178,7 +178,7 @@ Programs will typically return the last expression added to the expression list 
 
 ### Subprogram composition
 
-Variable introduction and functional application suffice to represent any fully-qualified lambda calculus expression where all abstractions (or, in easier terms, all the `λ` thingies) appear in the outermost positions. This is to say, terms expressable using those operations alone are equivalent to lambda terms entirely comprised of free variables which are later qualified by adding the required abstractions.
+Variable introduction and functional application suffice to represent any fully-qualified lambda calculus expression where all abstractions (or, in easier terms, all the `λ` thingies) appear in the outermost positions. This is to say, terms expressible using those operations alone are equivalent to lambda terms entirely comprised of free variables which are later qualified by adding the required abstractions.
 
 This leaves out terms where an abstraction appears within the scope of an application such as `λx.(x (λy.y))`. It should be noted that such term differs from `λx.λy.(x y)` (which we might construct with the operators defined above) as `λx.(x (λy.y))` has the effect of applying `x` (seemingly an operator between functions) to the identity function (`λy.y`) whereas `λx.λy.(x y)` just applies a function `x` to an argument `y`. Expressions with a top-level application such as `(λx.x) (λy.y)` are also impossible to construct with the above methods.
 
@@ -196,7 +196,7 @@ Including a composition statement within a program adds the resulting expression
 
 For example, in the program `[ :0 × :0 ] : 1` the composition of identity functions `(λy.y) (λz.z)` is added to the expression list in position 1 and then returned as a result. As in all other cases, the result is wrapped with the abstractions for the variables in the parent context, yielding `λx.((λy.y) (λz.z))`.
 
-This allows us to construct an expression directly mapping to `λx.(x ((λy.y) (λz.z)))` which we might write as `[ :0 × :0 ] 0.1; : 2` (the composition followed by an application of the 0th term, `x`, to the term in position 1) but it still doesn't provide any direct way of constructing an expression such as `λx.(x (λy.y))`, with an application between a variable and a single abstraction. _Lambad_ does **not** provide a way to construct such an expression but it should be noted that the two expressions are, in fact, equivalent. The composition has the identity function applied to itself, this _reduces_ to an identity function such as `λy.y`. In general, a computational equivalent to any `λx.E` (where `E` is an stand-in for an arbitrary expression) can be introduced to the expression list as a composition of the identity and `λx.E`.
+This allows us to construct an expression directly mapping to `λx.(x ((λy.y) (λz.z)))` which we might write as `[ :0 × :0 ] 0.1; : 2` (the composition followed by an application of the 0th term, `x`, to the term in position 1) but it still doesn't provide any direct way of constructing an expression such as `λx.(x (λy.y))`, with an application between a variable and a single abstraction. _Lambad_ does **not** provide a way to construct such an expression but it should be noted that the two expressions are, in fact, equivalent. The composition has the identity function applied to itself, this _reduces_ to an identity function such as `λy.y`. In general, a computational equivalent to any `λx.E` (where `E` is a stand-in for an arbitrary expression) can be introduced to the expression list as a composition of the identity and `λx.E`.
 
 There is yet another sort of expression that isn't covered by the structures described up to this point: consider the lambda term `λx.((λy.y x) (λz.x z))`. In this expression, the variable `x`, defined in the outermost context, occurs within the sub-expressions appearing in the composition `(λy.y x) (λz.x z)`. It can be further noted that no _Lambad_ program as reviewed so far is able to return the terms `λy.y x` or `λz.x z`, as they contain `x` as a free variable outside the scope of ttheir own contexts. In order to allow for such expressions, subprograms are permitted to reference variables with the context of their parent program. This is done by using negative indices. If the parent context tracks _n_ variables (internally accessible as positions _0_ to _n-1_ in the expression list), a negative index _-m_ from _-1_ to _-n_ will be used to reference the parent context variable internally available as _m-1_. For subprograms nested within other subprograms, variables in outer contexts are accessible by referencing values below _-n_.
 
@@ -215,7 +215,7 @@ Thus `λx.((λy.y x) (λz.x z))` may be represented as `[ 0.-1; :1 × -1.0; :1 ]
 
 #### Compositions as a return value
 
-In order to represent lambda expressions with an outermost application, _Lambad_ allows for compositions to be used as return values, simply by preceding the composition with a colon **`:`**. Thus, `: [ 0.-1; :1 × -1.0; :1 ]` is a valid Lambad program corrsponding to the lambda term `(λy.y) (λz.z)`, as opposed to the expression `λx.((λy.y) (λz.z))` we got in the previous section.
+In order to represent lambda expressions with an outermost application, _Lambad_ allows for compositions to be used as return values, simply by preceding the composition with a colon **`:`**. Thus, `: [ 0.-1; :1 × -1.0; :1 ]` is a valid Lambad program corresponding to the lambda term `(λy.y) (λz.z)`, as opposed to the expression `λx.((λy.y) (λz.z))` we got in the previous section.
 
 These are only kind of terms in _Lambad_ for which the corresponding lambda calculus term doesn't begin with an abstraction. It should be noted, however, that as long as each expression within the application is fully-qualified, so will be the resulting term.
 
@@ -233,7 +233,7 @@ Some of the most cumbersome aspects of Verbose Lambad include:
 - Compositions will often use the identity function as its first expression so we will be writing those `[:1 × ___ ]` quite often.
 - Too many semicolons; we could do without some in certain positions; certain combinations such as `;:` look ugly.
 
-Shorteneed Lambad does _not_ address the first problem but provides useful shorthands for the rest:
+Shortened Lambad does _not_ address the first problem but provides useful shorthands for the rest:
 - Variable introduction is made optional: variables are added to ensure that the highest index in the first statement (as long as it's an application or a return statement) references a variable. Expressions corresponding to each variable are still appended to the expression list, so a 'first statement' with an application referencing position 5 will result in 5 new variables being introduced in positions 1 to 5 and the application itself being appended to the list in position 6.
     - Examples:
         - `:2` references position 2 in its first statement, which requires 2 variables to be introduced. Equivalent to Verbose `++:2`, lambda term `λx.λy.λz.z`.
@@ -289,7 +289,7 @@ For instance, the contexts corresponding to an empty program (with one variable)
 
 ![Context headers](https://github.com/jotadiego/Lambad/blob/main/img/context_headers.png)
 
-The _n_-th line from left to right corresonds to the expression in position _n-1_ (the leftmost line corresponds to the variable `x`, defined to be in position 0).
+The _n_-th line from left to right corresponds to the expression in position _n-1_ (the leftmost line corresponds to the variable `x`, defined to be in position 0).
 
 The **return value** is specified by adding a small square (a 'return box') at the end (bottom) of the line representing the returned expression.
 
@@ -359,7 +359,7 @@ The sequence of bits `11100010 10011011 10101010` correspond to the UTF-8 encodi
 
 Unrelated to that fact, [Church](https://en.wikipedia.org/wiki/Church_encoding) encodings are clever ways to represent values such as numbers and booleans in lambda calculus. As anyone should expect by this point, values are encoded as functions. Then functions that are normally defined for numbers or booleans can be defined for those functions, so you apply functions to functions to compute functions.
 
-Unfortunately, as of November 2023, the _"Yo Dawg, I herd you like (noun X), so I put an (noun X) in your (noun Y) so you can (verb Z) while you (verb Z)."_ meme from 2007 has faded away from pop culture (that's for the better, no doubt), so what was an obvious joke when I was half my age would now be out of place and outdated. That's for the better, too.
+Unfortunately, as of November 2023, the _"Yo Dawg, I heard you like (noun X), so I put an (noun X) in your (noun Y) so you can (verb Z) while you (verb Z)."_ meme from 2007 has faded away from pop culture (that's for the better, no doubt), so what was an obvious joke when I was half my age would now be out of place and outdated. That's for the better, too.
 
 #### Booleans
 
@@ -417,7 +417,7 @@ Or, for short: `+[0.1;.0:].0;.1[+0.0;.1:].0;.1[0.2;.1:].7;5.4;.9:`.
 
 #### Natural numbers
 
-While the idea of an artificial language meant for international communication (what is known in the business as an 'auxilliary language' or _auxlang_ for short) is most commonly associated to Esperanto, a constructed language as practical for its intended purpose as _Lambad_ itself, the fact is that Esperanto is only one of several such proposals. The fact that you're reading this article in English and not Ido, Volapük or Communicationssprache can give you an adequate notion of how succesful such proposals were. Still, one curious proposal was that of _Latino sine flexione_, a much simplified form of Latin without noun cases and with relatively minimal verb conjugation. While a cool idea in theory, the language didn't gather much support and its creator, Italian mathematician Giusseppe Peano, is mostly known instead for developing the modern mathematical understanding of natural numbers among other notorious contribuitions to the field.
+While the idea of an artificial language meant for international communication (what is known in the business as an 'auxilliary language' or _auxlang_ for short) is most commonly associated to Esperanto, a constructed language as practical for its intended purpose as _Lambad_ itself, the fact is that Esperanto is only one of several such proposals. The fact that you're reading this article in English and not Ido, Volapük or Communicationssprache can give you an adequate notion of how succesful such proposals were. Still, one curious proposal was that of _Latino sine flexione_, a much simplified form of Latin without noun cases and with relatively minimal verb conjugation. While a cool idea in theory, the language didn't gather much support and its creator, Italian mathematician Giusseppe Peano, is mostly known instead for developing the modern mathematical understanding of natural numbers among other notorious contributions to the field.
 
 Peano's axiomatization gave us an inductive definition for natural numbers where any value can be constructed out of two elements: a value corresponding to the first natural _zero_ and a _successor_ function which we can apply repeatedly on the _zero_ value to construct any positive integer.
 
@@ -476,9 +476,9 @@ This, however, results in a 'successor first' value, we need to compound the res
 ]
 ```
 
-Ugly as it may seem, the resulting Lambad program is can be converted to a similarly unwieldly lambda expression which can be reduced to `λz.λs.s (s (s (s (s (s z))))`, our representation of 'six'.
+Ugly as it may seem, the resulting Lambad program is can be converted to a similarly unwieldy lambda expression which can be reduced to `λz.λs.s (s (s (s (s (s z))))`, our representation of 'six'.
 
-When building a programming language to be used for practical purposes, having a much simpler multiplication (`1.2;0.:`) is well worth the cost of having a less elegant representation for numbers, so it would be logical to stick to the well-justified convention of using the 'successor first' order, even if it means that we'd have counterintuitive expressions such as `:1` for 'zero'. However, by this point there should be no doubts that logic and practicality are _not_ priorities in the design of Lambad. We'll stick to the 'zero first' order, with its cumbersome multiplication and slightly nicer numbers because I _like_ it that way.
+When building a programming language to be used for practical purposes, having a much simpler multiplication (`1.2;0.:`) is well worth the cost of having a less elegant representation for numbers, so it would be logical to stick to the well-justified convention of using the 'successor first' order, even if it means that we'd have counter-intuitive expressions such as `:1` for 'zero'. However, by this point there should be no doubts that logic and practicality are _not_ priorities in the design of Lambad. We'll stick to the 'zero first' order, with its cumbersome multiplication and slightly nicer numbers because I _like_ it that way.
 
 ### Text and bytestreams
 
@@ -504,7 +504,7 @@ Morse code was by far the main method to encode text in telegraphs. There is a c
 
 It could be argued that we should actually need a fourth symbol for the longer pause used to separate _words_, so as to distinguish between 'AT' `.- -` and 'A T' `.-  -` though we could approximate that by using two _space_ symbols. It could also be argued that two symbols are actually enough, we'd just need to consider the 'pixels' (or 'units') that compose each _dit_, _dah_ or _space_. Working with _dits_, _dahs_ and _spaces_, however, has the undeniable advantage that saying 'dit' and 'dah' is way more fun than using a more efficient representation.
 
-In addition to our three symbols, we'll need a way to represent an empty string. Our encoding will use four variables: one representing the empty string and one representing a function that adds each symbol to the string (not unlike the way our _successor_ function added an unit to the zero value in our encoding for natural numbers). With this, we'll have:
+In addition to our three symbols, we'll need a way to represent an empty string. Our encoding will use four variables: one representing the empty string and one representing a function that adds each symbol to the string (not unlike the way our _successor_ function added a unit to the zero value in our encoding for natural numbers). With this, we'll have:
 - `λe.λdit.λdah.λs.e` or `3+:0` for the empty string.
 - `λe.λdit.λdah.λs.dit e` or `3+1.0:` for the string `.` (the empty string followed by a dot, equivalent to the letter 'e').
 - `λe.λdit.λdah.λs.dah e` or `3+2.0:` for the string `.` (the empty string followed by a dash, equivalent to the letter 't').
@@ -512,7 +512,7 @@ In addition to our three symbols, we'll need a way to represent an empty string.
 - `λe.λdit.λdah.λs.dit (dit e)` or `3+1.0;1.:` for the string `..` (two dots, equivalent to the letter 'i').
 - `λe.λdit.λdah.λs.dah (dit e)` or `3+1.0;2.:` for the string `.-` (two dots, equivalent to the letter 'a'). The lambda expression seems to show the 'dit' and the 'dah' in the wrong order as the function to append a new character to the end of the string must be placed on the left. By contrast, the `1` and `2` representing 'dits' and 'dahs' in Lambad _do_ appear in the right order, making Lambad notation considerably more convenient this time around.
 - `λe.λdit.λdah.λs.(dit (dit (dah (s (dit (dit (dah (dit (s (dit (dah( (dit (s (dah (dah (dah (s (dah (dah (dit (s (s (dah (dah (dah (s (dit (dit (dah (dit (s (dit (dit (dah (dit (s (dit (s (dit (dit (dit (dit e)))))))))))))))))))))))))))))))))))))))))))` or `3+1.0;1.;1.;1.;3.;1.;3.;1.;2.;1.;1.;3.;1.;2.;1.;1.;3.;2.;2.;2.;3.;3.;1.;2.;2.;3.;2.;2.;2.;3.;1.;2.;1.;3.;1.;2.;1.;1.;3.;2.;1.;1.:` for `.... . .-.. .-.. ---  .-- --- .-. .-.. -..`, equivalent to 'hello world'.
-- `λe.λdit.λdah.λs.(dit (dit (dit (dah (dah (dah (dit (dit (dit e)))))))))` or `3+1.0;1.;1.;2.;2.;2.;1.;1.;1.:` for `...---...`, a code that will come in handy if you ever need to represent text in morse code using lambda calculus.
+- `λe.λdit.λdah.λs.(dit (dit (dit (dah (dah (dah (dit (dit (dit e)))))))))` or `3+1.0;1.;1.;2.;2.;2.;1.;1.;1.:` for `...---...`, a code that will come in handy if you ever need to represent text in Morse code using lambda calculus.
 
 There are various downsides to using this encoding, the most obvious being the fact that the resulting expressions end up being excessively long. Other issue include the lack of distinction between lowercase and uppercase characters as well as the wider lack of Unicode support which, in our present day and age, is hard to justify (on good Samuel Morse's behalf, his code predates Unicode by over a century, so he can get away with it).
 
@@ -532,7 +532,7 @@ Let's not do that.
 
 What if we did something similar to how we handled Morse code, except that we encoded each individual bit as a string of ones and zeroes instead of dits and dahs?
 
-This time around it will be more convenient to encode the zero string using the _last_ variable in our expression, so that the Lambad variables in positions 0 and 1 can be used to represent zeroes and ones respectively.
+This time around it will be more convenient to encode the empty string using the _last_ variable in our expression, so that the Lambad variables in positions 0 and 1 can be used to represent zeroes and ones respectively.
 
 Thus we'd have:
 - `λzero.λone.λe.e` or `:2` for the empty string.
@@ -699,7 +699,7 @@ Lambad programs, much like the lambda expressions they are based on, may only de
 ]
 ```
 
-Note that the 'addition' expression corresponding to the subprogram `3+1.2;.3;0.;.3:` can be applied to any two numeric values to compute their sum but, by itself, it's a single, static, non-β-reducible expression; the addition computation can only be performed when the 'addition' expression is applied to two arguments (like the  `1.0:`  and `1.0;1.:` in the previous example) which are built into the _Lambad_ program. If we wanted to compute a different addition, such as '2 + 2', we'd have to write a new program differeing only on the parts encodings arguments:
+Note that the 'addition' expression corresponding to the subprogram `3+1.2;.3;0.;.3:` can be applied to any two numeric values to compute their sum but, by itself, it's a single, static, non-β-reducible expression; the addition computation can only be performed when the 'addition' expression is applied to two arguments (like the  `1.0:`  and `1.0;1.:` in the previous example) which are built into the _Lambad_ program. If we wanted to compute a different addition, such as '2 + 2', we'd have to write a new program differing only on the parts encodings arguments:
 
 ```
 :[
@@ -793,7 +793,7 @@ Returns `True` if a `LambadProgram` is identical to `LambdaContext 1 [] 0`, the 
 parse :: Data.Text.Text -> LambadProgram
 ```
 
-Parses a `Text` containing a Lambad program into the corresponding `LambadProgram` value. **Throws an error an halts execution** if the `Text` doesn't correspond to a valid Lambad program.
+Parses a `Text` containing a Lambad program into the corresponding `LambadProgram` value. **Throws an error and halts execution** if the `Text` doesn't correspond to a valid Lambad program.
 
 ```haskell
 toLambda :: LambadProgram -> Lambda
