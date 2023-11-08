@@ -735,7 +735,7 @@ LambadInterpreter.exe ns result.txt additionTemplate.lambad firstArgument.txt se
 
 Any placeholder with a positive number _n_ inside curly braces (`{1}`, `{2}`, `{3}` and so on) found in the main input file will be replaced by the content of the _n_-th optional argument. The same placeholders might occur multiple times within template with all its occurrences being replaced when running the program. Neither the input program template nor argument subprograms need to be syntactically valid on their own; syntax will only be validated after all substitutions are made.
 
-The example files contain a number of operators using this feature, as well as predefined expressions for booleans True and False as well as numbers from 0 to 3. Thus, we might assemble and evaluate a _Lambad_ program computing `True AND False` as
+The example files contain a number of operators using this feature, as well as predefined expressions for booleans True and False as well as numbers from 0 to 3. Thus, we might assemble and evaluate a _Lambad_ program computing `True OR False` as
 
 ```
 LambadInterpreter.exe b op_or.txt boolTrue.txt boolFalse.txt
