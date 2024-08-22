@@ -507,14 +507,14 @@ It could be argued that we should actually need a fourth symbol for the longer p
 In addition to our three symbols, we'll need a way to represent an empty string. Our encoding will use four variables: one representing the empty string and one representing a function that adds each symbol to the string (not unlike the way our _successor_ function added a unit to the zero value in our encoding for natural numbers). With this, we'll have:
 - `λe.λdit.λdah.λs.e` or `3+:0` for the empty string.
 - `λe.λdit.λdah.λs.dit e` or `3+1.0:` for the string `.` (the empty string followed by a dot, equivalent to the letter 'e').
-- `λe.λdit.λdah.λs.dah e` or `3+2.0:` for the string `.` (the empty string followed by a dash, equivalent to the letter 't').
+- `λe.λdit.λdah.λs.dah e` or `3+2.0:` for the string `-` (the empty string followed by a dash, equivalent to the letter 't').
 - `λe.λdit.λdah.λs.s e` or `3.0:` for the string ` ` (the empty string followed by a space).
 - `λe.λdit.λdah.λs.dit (dit e)` or `3+1.0;1.:` for the string `..` (two dots, equivalent to the letter 'i').
 - `λe.λdit.λdah.λs.dah (dit e)` or `3+1.0;2.:` for the string `.-` (two dots, equivalent to the letter 'a'). The lambda expression seems to show the 'dit' and the 'dah' in the wrong order as the function to append a new character to the end of the string must be placed on the left. By contrast, the `1` and `2` representing 'dits' and 'dahs' in Lambad _do_ appear in the right order, making Lambad notation considerably more convenient this time around.
 - `λe.λdit.λdah.λs.(dit (dit (dah (s (dit (dit (dah (dit (s (dit (dah( (dit (s (dah (dah (dah (s (dah (dah (dit (s (s (dah (dah (dah (s (dit (dit (dah (dit (s (dit (dit (dah (dit (s (dit (s (dit (dit (dit (dit e)))))))))))))))))))))))))))))))))))))))))))` or `3+1.0;1.;1.;1.;3.;1.;3.;1.;2.;1.;1.;3.;1.;2.;1.;1.;3.;2.;2.;2.;3.;3.;1.;2.;2.;3.;2.;2.;2.;3.;1.;2.;1.;3.;1.;2.;1.;1.;3.;2.;1.;1.:` for `.... . .-.. .-.. ---  .-- --- .-. .-.. -..`, equivalent to 'hello world'.
 - `λe.λdit.λdah.λs.(dit (dit (dit (dah (dah (dah (dit (dit (dit e)))))))))` or `3+1.0;1.;1.;2.;2.;2.;1.;1.;1.:` for `...---...`, a code that will come in handy if you ever need to represent text in Morse code using lambda calculus.
 
-There are various downsides to using this encoding, the most obvious being the fact that the resulting expressions end up being excessively long. Other issue include the lack of distinction between lowercase and uppercase characters as well as the wider lack of Unicode support which, in our present day and age, is hard to justify (on good Samuel Morse's behalf, his code predates Unicode by over a century, so he can get away with it).
+There are various downsides to using this encoding, the most obvious being the fact that the resulting expressions end up being excessively long. Other issues include the lack of distinction between lowercase and uppercase characters as well as the wider lack of Unicode support which, in our present day and age, is hard to justify (on good Samuel Morse's behalf, his code predates Unicode by over a century, so he can get away with it).
 
 #### Numerical encoding
 
